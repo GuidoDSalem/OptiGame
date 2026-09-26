@@ -35,6 +35,7 @@ src/
     diagnose.ts           Traduce el resultado del solver a feedback pedagógico
     score.ts              Estrellas y distancia al óptimo
     geometry.ts           Región factible 2D (método gráfico)
+    pareto.ts             Dos objetivos: frontera exacta por ε-restricción y puntos soportados
     routing.ts            Ruteo: circuitos, heurísticas, cortes de subtour, formulación MTZ
     indexed.ts            Modelos con índices: conjuntos (ordenados o no), parámetros, familias de
                           variables y restricciones como sumas de términos (con desfase t−1) → LPModel
@@ -63,6 +64,12 @@ src/
       RouteBuilder.tsx    Intento manual: armar la ruta + heurísticas (vecino más cercano, 2-opt)
       Scene.ts            Ciudad en grilla con la ruta por las calles
       reparto.ts          Variante: panadería que reparte a comercios del barrio
+    ciudad/               Nivel 7 como PLANTILLA: cartera de proyectos, reglas lógicas y Pareto
+      template.ts         crearNivelCiudad(variante): reglas requiere/excluye/alMenos → restricciones
+      ProjectPicker.tsx   Intento manual: prender proyectos y ver el rastro en el plano
+      ParetoPanel.tsx     Frontera de Pareto (ε-restricción) y puntos que la suma ponderada no ve
+      Scene.ts            Lotes con edificios según los proyectos elegidos
+      nueva-pampa.ts      Variante: intendencia con compromiso ambiental
   config.ts               Funcionalidades en prueba (p. ej. botón "Ver modelo correcto")
   scene/IsoCanvas.tsx     Lienzo Three.js isométrico reutilizable + primitivas (box, cylinder, pipe)
   scene/thumbnail.ts      Render único de una escena a imagen (miniaturas del menú)

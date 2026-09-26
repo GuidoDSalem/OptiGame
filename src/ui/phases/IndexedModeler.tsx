@@ -10,6 +10,7 @@ import {
   varTex,
   domainTex,
   orderedSetOf,
+  summedSets,
   term,
   type IndexedSpec,
   type Term,
@@ -41,12 +42,15 @@ function TermsEditor({
   terms,
   forall,
   allowLag,
+  allowPick,
   onChange,
 }: {
   spec: IndexedSpec;
   terms: Term[];
   forall: string[];
   allowLag: boolean;
+  /** Permite elegir un elemento particular en vez de sumar (p. ej. y_Hospital). */
+  allowPick?: boolean;
   onChange(t: Term[]): void;
 }) {
   const set = (i: number, patch: Partial<Term>) => onChange(terms.map((t, j) => (j === i ? { ...t, ...patch } : t)));
@@ -54,15 +58,36 @@ function TermsEditor({
     <div className="terms">
       {terms.map((t, i) => {
         const fam = getVar(spec, t.var);
-        const sumOver = fam.over.filter((s) => !forall.includes(s));
+        const free = fam.over.filter((s) => !forall.includes(s));
+        const sumOver = summedSets(fam, t, forall);
         const os = orderedSetOf(spec, fam);
+        const pick = (s: string, item: string) => {
+          const at = { ...(t.at ?? {}) };
+          if (item) at[s] = item;
+          else delete at[s];
+          set(i, { at: Object.keys(at).length ? at : undefined });
+        };
         return (
           <div key={i} className="irow iterm">
             <select className="sign" value={t.sign} onChange={(e) => set(i, { sign: Number(e.target.value) as 1 | -1 })}>
               <option value={1}>+</option>
               <option value={-1}>−</option>
             </select>
-            {sumOver.length > 0 && <Tex tex={sumOver.map((s) => `\\sum_{${getSet(spec, s).index}}`).join(' ')} />}
+            {allowPick
+              ? free.map((s) => {
+                  const S = getSet(spec, s);
+                  return (
+                    <select key={s} value={t.at?.[s] ?? ''} onChange={(e) => pick(s, e.target.value)} title={`Sumar o elegir ${S.index}`}>
+                      <option value="">Σ todos los {S.name.toLowerCase()}</option>
+                      {S.items.map((it) => (
+                        <option key={it.id} value={it.id}>
+                          sólo {it.label}
+                        </option>
+                      ))}
+                    </select>
+                  );
+                })
+              : sumOver.length > 0 && <Tex tex={sumOver.map((s) => `\\sum_{${getSet(spec, s).index}}`).join(' ')} />}
             <select value={t.coef ?? ''} onChange={(e) => set(i, { coef: e.target.value || null })} title="Coeficiente">
               <option value="">1</option>
               {spec.params.map((p) => (
@@ -80,7 +105,7 @@ function TermsEditor({
                 ))}
               </select>
             ) : null}
-            <Tex tex={varTex(spec, t.var, t.lag)} />
+            <Tex tex={varTex(spec, t.var, t.lag, t.at)} />
             {allowLag && os && (
               <select
                 value={t.lag ?? 0}
@@ -194,6 +219,7 @@ export function IndexedModeler({ level, draft, onChange, onSolve, solving, revea
           terms={draft.objective.terms}
           forall={[]}
           allowLag={false}
+          allowPick={level.indexed.pickItems}
           onChange={(terms) => onChange({ ...draft, objective: { terms } })}
         />
 
@@ -240,6 +266,7 @@ export function IndexedModeler({ level, draft, onChange, onSolve, solving, revea
                 terms={c.terms}
                 forall={c.forall}
                 allowLag
+                allowPick={level.indexed.pickItems}
                 onChange={(terms) => setRow(c.key, { terms })}
               />
               <div className="irow">

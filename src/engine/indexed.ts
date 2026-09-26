@@ -67,10 +67,27 @@ export interface Term {
   var: string;
   /** Desfase en el conjunto ordenado de la variable: −1 = período anterior. */
   lag?: number;
+  /**
+   * Índices fijados en un elemento particular (en vez de sumar): p. ej. { P: 'hosp' } da
+   * y_{Hospital}. Sirve para restricciones lógicas entre decisiones puntuales.
+   */
+  at?: Record<string, string>;
 }
 
 export const term = (v: string, coef: string | null = null, sign: 1 | -1 = 1, lag?: number): Term =>
   lag ? { sign, coef, var: v, lag } : { sign, coef, var: v };
+
+/** Término sobre un elemento particular: `termAt('y', { P: 'hosp' }, -1)` = −y_{hosp}. */
+export const termAt = (v: string, at: Record<string, string>, sign: 1 | -1 = 1, coef: string | null = null): Term => ({
+  sign,
+  coef,
+  var: v,
+  at,
+});
+
+/** Conjuntos de la variable que el término suma (ni en el "para cada" ni fijados). */
+export const summedSets = (fam: VarFamily, t: Term, forall: string[]) =>
+  fam.over.filter((s) => !forall.includes(s) && !(t.at && s in t.at));
 
 export interface IndexedConstraint {
   key: string;
@@ -167,6 +184,11 @@ export function validateConstraint(spec: IndexedSpec, c: IndexedConstraint): str
     const fam = getVar(spec, t.var);
     if (t.coef && !isSubset(getParam(spec, t.coef).over, fam.over))
       errs.push(`El coeficiente ${getParam(spec, t.coef).symbol} tiene índices que ${fam.symbol} no tiene.`);
+    for (const s of Object.keys(t.at ?? {})) {
+      if (!fam.over.includes(s)) errs.push(`${fam.symbol} no tiene el índice ${getSet(spec, s).index}.`);
+      else if (c.forall.includes(s))
+        errs.push(`Fijaste ${getSet(spec, s).index} en un elemento, pero la restricción también se repite "para cada" ${getSet(spec, s).index}.`);
+    }
     if (t.lag) {
       const os = orderedSetOf(spec, fam);
       if (!os) errs.push(`${fam.symbol} no depende del tiempo: no se le puede aplicar un desfase.`);
@@ -196,9 +218,9 @@ export interface CompileResult {
 /** Suma las contribuciones de un término, dado el "para cada" fijado en `a`. */
 function addTerm(spec: IndexedSpec, t: Term, forall: string[], a: Assignment, into: Record<string, number>) {
   const fam = getVar(spec, t.var);
-  const sumOver = fam.over.filter((s) => !forall.includes(s));
+  const sumOver = summedSets(fam, t, forall);
   for (const b of assignments(spec, sumOver)) {
-    const full = shift(spec, t, { ...a, ...b });
+    const full = shift(spec, t, { ...a, ...b, ...t.at });
     if (!full || !validFor(fam, full)) continue;
     const id = varId(fam, full);
     const k = t.sign * (t.coef ? paramValue(spec, t.coef, full) : 1);
@@ -246,13 +268,14 @@ export function compileIndexed(spec: IndexedSpec, d: IndexedDraft): CompileResul
 
 /* ---------- Notación matemática ---------- */
 
-const sub = (spec: IndexedSpec, over: string[], lag?: number) => {
+const sub = (spec: IndexedSpec, over: string[], lag?: number, at?: Record<string, string>) => {
   if (!over.length) return '';
   const parts = over.map((s) => {
     const set = getSet(spec, s);
+    if (at?.[s]) return `\\text{${set.items.find((it) => it.id === at[s])?.short ?? at[s]}}`;
     return lag && set.ordered ? `${set.index}${lag < 0 ? '' : '+'}${lag}` : set.index;
   });
-  return `_{${parts.join(lag ? ',' : '')}}`;
+  return `_{${parts.join(lag || at ? ',' : '')}}`;
 };
 
 export function paramTex(spec: IndexedSpec, id: string): string {
@@ -260,9 +283,9 @@ export function paramTex(spec: IndexedSpec, id: string): string {
   return `${p.symbol}${sub(spec, p.over)}`;
 }
 
-export function varTex(spec: IndexedSpec, id: string, lag?: number): string {
+export function varTex(spec: IndexedSpec, id: string, lag?: number, at?: Record<string, string>): string {
   const v = getVar(spec, id);
-  return `${v.symbol}${sub(spec, v.over, lag)}`;
+  return `${v.symbol}${sub(spec, v.over, lag, at)}`;
 }
 
 const sums = (spec: IndexedSpec, over: string[]) =>
@@ -279,9 +302,9 @@ export function termsTex(spec: IndexedSpec, terms: Term[], forall: string[]): st
   return terms
     .map((t, i) => {
       const fam = getVar(spec, t.var);
-      const sumOver = fam.over.filter((s) => !forall.includes(s));
+      const sumOver = summedSets(fam, t, forall);
       const coef = t.coef ? paramTex(spec, t.coef) + '\\,' : '';
-      const body = `${sums(spec, sumOver)} ${coef}${varTex(spec, fam.id, t.lag)}`.trim();
+      const body = `${sums(spec, sumOver)} ${coef}${varTex(spec, fam.id, t.lag, t.at)}`.trim();
       const sign = t.sign < 0 ? '-' : i > 0 ? '+' : '';
       return `${sign} ${body}`;
     })

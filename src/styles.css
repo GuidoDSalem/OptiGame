@@ -241,3 +241,23 @@ button.link.small { font-size: 0.82rem; }
 .route-builder .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
 .route-builder .chips button { border-radius: 999px; font-size: 0.88rem; }
 .small { font-size: 0.85rem; }
+
+/* Nivel 7: selector de proyectos y frontera de Pareto */
+.project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; margin: 10px 0; }
+.project { display: flex; flex-direction: column; gap: 2px; text-align: left; font-size: 0.8rem; padding: 8px 10px; color: var(--muted); }
+.project strong { color: var(--ink); font-size: 0.88rem; }
+.project.on { border-color: var(--ink); background: var(--accent-soft); }
+.plot.pareto .tope { stroke: var(--bad); stroke-dasharray: 4 3; }
+.plot.pareto .tope-label { fill: var(--bad); font-size: 10px; }
+.plot.pareto .stair { fill: none; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 2 2; }
+.plot.pareto .pt-frontera { fill: var(--ink); }
+.plot.pareto .pt-no-soportado { fill: var(--surface); stroke: var(--warn); stroke-width: 2; }
+.plot.pareto .pt-intento { fill: var(--muted); opacity: 0.7; }
+.plot.pareto .pt-actual { fill: var(--accent); }
+.plot.pareto .pt-solucion { fill: none; stroke: var(--accent); stroke-width: 2.5; }
+.pareto-panel { margin: 16px 0; }
+.legend { font-size: 0.82rem; color: var(--muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-left: 8px; }
+.legend .dot.frontera { background: var(--ink); }
+.legend .dot.no-soportado { background: var(--surface); border: 2px solid var(--warn); }
+.legend .dot.solucion { border: 2.5px solid var(--accent); }

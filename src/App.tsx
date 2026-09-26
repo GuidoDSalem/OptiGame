@@ -5,9 +5,7 @@ import { LevelThumb } from './ui/components/LevelThumb';
 import { LevelView } from './ui/LevelView';
 
 /** Niveles planificados (todavía no implementados), para mostrar el recorrido. */
-const UPCOMING = [
-  { client: 'Ciudad en crecimiento', technique: 'Multi-objetivo · decisiones encadenadas' },
-];
+const UPCOMING: { client: string; technique: string }[] = [];
 
 /** Agrupa las versiones de un mismo nivel (mismo número), respetando el orden del registro. */
 function groupByNumber(levels: Level[]): Level[][] {

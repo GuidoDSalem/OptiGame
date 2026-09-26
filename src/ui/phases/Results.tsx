@@ -90,6 +90,8 @@ export function Results({ level, model, result, diagnosis, optimum, manualBest, 
           </p>
         )}
 
+        {level.resultsExtra && <level.resultsExtra result={result} model={model} />}
+
         {result.status === 'optimal' && ev && (
           <>
             <h4>Decisión del solver</h4>

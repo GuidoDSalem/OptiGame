@@ -32,6 +32,7 @@ export const PALETTE = {
   salt: 0xb9b3a2,
   bad: 0xe5534b,
   muted: 0xc9c9c2,
+  green: 0x86b886,
 };
 
 /**

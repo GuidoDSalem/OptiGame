@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react';
 import type * as THREE from 'three';
 import type { Constraint, LPModel } from '../engine/model';
+import type { SolveResult } from '../engine/solver';
 import type { IndexedDraft, IndexedSpec } from '../engine/indexed';
 import type { IsoSceneHandle } from '../scene/IsoCanvas';
 
@@ -47,6 +48,11 @@ export interface Evaluation {
   checks: Check[];
 }
 
+export interface ResultsExtraProps {
+  result: SolveResult;
+  model: LPModel;
+}
+
 export interface ManualProps {
   values: Record<string, number>;
   onChange(values: Record<string, number>): void;
@@ -86,6 +92,8 @@ export interface Level {
    * el resto (p. ej. el stock que resulta de lo enviado) antes de evaluar y dibujar.
    */
   manualDerive?(values: Record<string, number>): Record<string, number>;
+  /** Panel extra en el resultado (p. ej. la frontera de Pareto). */
+  resultsExtra?: ComponentType<ResultsExtraProps>;
   /** Controles propios para el intento manual (reemplazan a los sliders o la tabla). */
   manualComponent?: ComponentType<ManualProps>;
   /**
@@ -130,6 +138,8 @@ export interface IndexedLevel {
    * Niveles multi-período: tabla con una columna por período y una fila por familia de
    * variables (y parámetros de contexto). Reemplaza a la matriz si está definida.
    */
+  /** En el modelador, cada término puede fijar un elemento (y_Hospital) en vez de sumar. */
+  pickItems?: boolean;
   periodTable?: {
     set: string;
     /** Familia que el jugador edita en el intento manual. */
