@@ -426,3 +426,59 @@ table.data.rounds td.cut { font-family: ui-monospace, SFMono-Regular, Menlo, mon
 .progreso-caso .barra { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
 .progreso-caso .barra div { height: 100%; background: var(--accent); transition: width 0.2s; }
 .casos .card { border-color: var(--accent); }
+
+/* Caso C2: bicis */
+.mapa-centro { display: block; border-radius: 10px; }
+.mapa-centro .fondo { fill: var(--surface); stroke: var(--line); }
+.mapa-centro .agua { fill: none; stroke: #b9d3f5; stroke-width: 7; stroke-linecap: round; }
+.mapa-centro .avenida { fill: none; stroke: #ececE6; stroke-width: 6; stroke-linecap: round; }
+.mapa-centro .lugar { font-size: 10px; fill: #a2a29b; font-style: italic; }
+.mapa-centro .viaje { fill: var(--accent); fill-opacity: 0.75; }
+.mapa-centro .estacion .tubo { fill: var(--surface); stroke: var(--muted); stroke-width: 1.2; }
+.mapa-centro .estacion .bicis { fill: var(--ink); }
+.mapa-centro .estacion.sin-bici .tubo { stroke: var(--bad); stroke-width: 3; fill: #fdecea; }
+.mapa-centro .estacion.sin-lugar .tubo { stroke: var(--warn); stroke-width: 3; }
+.mapa-centro .estacion.sin-lugar .bicis { fill: var(--warn); }
+.mapa-centro .estacion .anillo { fill: none; stroke: var(--accent); stroke-width: 2; }
+.mapa-centro .estacion .numero { font-size: 10px; fill: var(--ink); font-weight: 600; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; }
+.mapa-centro .estacion .nombre { font-size: 9.5px; fill: var(--ink); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; }
+.mapa-centro.compacto .estacion .tubo { stroke-width: 0.8; }
+.reproduccion .reloj { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+.reproduccion .reloj .hora { font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; min-width: 3.2em; }
+.reproduccion .reloj .primary { margin-top: 0; }
+.reproduccion .reloj input[type='range'] { flex: 1; min-width: 140px; }
+.reproduccion .contador { display: flex; justify-content: space-between; gap: 8px; font-size: 0.9rem; color: var(--muted); margin-bottom: 4px; }
+.reproduccion .contador strong { color: var(--ink); }
+.reproduccion b.sin-bici { color: var(--bad); }
+.reproduccion b.sin-lugar { color: var(--warn); }
+.reproduccion .lado-a-lado { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 600px) { .reproduccion .lado-a-lado { grid-template-columns: 1fr; } }
+.mapa-centro { max-height: 620px; }
+.caso .dos-columnas.iguales { grid-template-columns: 1fr 1fr; }
+@media (max-width: 700px) { .caso .dos-columnas.iguales { grid-template-columns: 1fr; } }
+.leyenda-caso i.sin-bici { background: var(--bad); border-radius: 2px; }
+.leyenda-caso i.sin-lugar { background: var(--warn); border-radius: 2px; }
+.leyenda-caso i.seco { background: var(--accent); }
+.leyenda-caso i.lluvia { background: #6b6b66; }
+.leyenda-caso i.y2023 { background: #b0b0aa; border-radius: 2px; }
+.leyenda-caso i.y2024 { background: var(--accent); border-radius: 2px; }
+.grafico .dia.seco { fill: var(--accent); }
+.grafico .dia.lluvia { fill: #6b6b66; }
+.grafico .trazo { fill: none; stroke: var(--muted); stroke-opacity: 0.18; stroke-width: 1; }
+.grafico .trazo-medio { fill: none; stroke: var(--ink); stroke-width: 2.2; }
+.grafico .limite { stroke: var(--bad); stroke-dasharray: 4 3; stroke-opacity: 0.6; }
+.grafico .elegido { stroke: var(--accent); stroke-dasharray: 3 2; }
+.grafico .punto-elegido { fill: var(--accent); }
+.grafico .etiqueta.chica { font-size: 9px; }
+.calor .celda { fill: var(--ink); }
+.calor .columna-sel { fill: none; stroke: var(--bad); stroke-width: 1.5; }
+.meses .barra.y2023 { fill: #b0b0aa; }
+.meses .barra.y2024 { fill: var(--accent); }
+.histos .otro .bin { fill: var(--muted); }
+table.repartos td { padding-top: 3px; padding-bottom: 3px; font-size: 0.85rem; }
+table.repartos td.destacada, table.repartos th.destacada { background: var(--accent-soft); }
+table.repartos .mini-barra { display: inline-block; width: 60px; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; vertical-align: middle; margin-right: 6px; }
+table.repartos .mini-barra i { display: block; height: 100%; background: var(--ink); }
+table.repartos td.destacada .mini-barra i { background: var(--accent); }
+table.repartos .num { font-variant-numeric: tabular-nums; }
+.caso code { font-size: 0.85em; background: var(--surface); padding: 1px 4px; border-radius: 4px; border: 1px solid var(--line); }

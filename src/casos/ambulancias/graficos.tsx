@@ -233,36 +233,41 @@ function percentilSimple(xs: number[], q: number) {
 export function CurvaTamanos({
   estudio,
   referencia,
+  etiquetaReferencia = 'costo real del mejor plan',
+  decimales = 0,
 }: {
   estudio: { n: number; prometido: number[]; real: number[] }[];
   /** Costo real del mejor plan (línea de referencia). */
   referencia: number;
+  etiquetaReferencia?: string;
+  decimales?: number;
 }) {
   const W = 640;
   const H = 300;
   const L = 56;
   const B = 36;
   const vals = estudio.flatMap((e) => [...e.prometido, ...e.real]);
-  const lo = Math.min(...vals, referencia) - 40;
-  const hi = Math.max(...vals, referencia) + 40;
+  const margen = (Math.max(...vals, referencia) - Math.min(...vals, referencia)) * 0.08 || 1;
+  const lo = Math.min(...vals, referencia) - margen;
+  const hi = Math.max(...vals, referencia) + margen;
   const sx = (i: number) => L + ((i + 0.5) / estudio.length) * (W - L - 10);
   const sy = (v: number) => H - B - ((v - lo) / (hi - lo)) * (H - B - 12);
   const media = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
   const linea = (f: (e: (typeof estudio)[number]) => number) => estudio.map((e, i) => `${i ? 'L' : 'M'}${sx(i)},${sy(f(e))}`).join(' ');
-  const ticks = [lo + 40, (lo + hi) / 2, hi - 40];
+  const ticks = [lo + margen, (lo + hi) / 2, hi - margen];
   return (
     <svg className="grafico curva" viewBox={`0 0 ${W} ${H}`} width="100%">
       {ticks.map((t) => (
         <g key={t}>
           <line className="grilla" x1={L} y1={sy(t)} x2={W - 10} y2={sy(t)} />
           <text className="tick" x={L - 6} y={sy(t) + 4} textAnchor="end">
-            {fmt(t)}
+            {fmt(t, decimales)}
           </text>
         </g>
       ))}
       <line className="referencia" x1={L} y1={sy(referencia)} x2={W - 10} y2={sy(referencia)} />
       <text className="marca" x={W - 12} y={sy(referencia) - 6} textAnchor="end">
-        costo real del mejor plan
+        {etiquetaReferencia}
       </text>
       {estudio.map((e, i) => (
         <g key={e.n}>

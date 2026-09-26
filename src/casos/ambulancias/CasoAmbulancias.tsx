@@ -23,6 +23,7 @@ import {
   fmt,
   tipoDia,
 } from './graficos';
+import { Seccion } from '../comun';
 import { Mapa } from './Mapa';
 import { useAnalisis } from './useAnalisis';
 import { useEnVista } from './useEnVista';
@@ -75,21 +76,6 @@ export function CasoAmbulancias({ onExit }: { onExit(): void }) {
         </>
       )}
     </article>
-  );
-}
-
-function Seccion({ n, titulo, children, className = '' }: { n?: number; titulo?: string; children: React.ReactNode; className?: string }) {
-  const [ref, visto] = useEnVista<HTMLElement>();
-  return (
-    <section ref={ref} className={`paso ${visto ? 'visto' : ''} ${className}`}>
-      {titulo && (
-        <h2>
-          {n !== undefined && <span className="num">{n}</span>}
-          {titulo}
-        </h2>
-      )}
-      {children}
-    </section>
   );
 }
 

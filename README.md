@@ -30,6 +30,8 @@ npm run build      # build estático en dist/ (lo publica .github/workflows/depl
 ## Estructura
 
 ```
+scripts/
+  ecobici/preprocesar.py  Baja los datos crudos de Ecobici (cientos de MB, no van al repo) al resumen del caso C2
 src/
   engine/                 Lógica pura, sin UI (testeable en Node)
     model.ts              Tipos LPModel/Constraint + serialización a formato CPLEX LP
@@ -39,6 +41,7 @@ src/
     geometry.ts           Región factible 2D (método gráfico)
     benders.ts            Descomposición de Benders: maestro, subproblema, cortes por dualidad, cotas
     ramificacion.ts       Branch and bound y cortes de Gomory en 2 variables (LP exacto por vértices, tableau)
+    bicis.ts              Caso C2: simulación de estaciones con viajes reales y reparto óptimo por programación dinámica
     ambulancias.ts        Caso C1: simulación con semilla, flujo de costo mínimo por día, SAA y validación
     estocastico.ts        Benders estocástico (L-shaped): escenarios, multi-corte vs. corte único, VSS y EVPI
     columnas.ts           Generación de columnas (corte de bobinas): maestro, pricing-mochila, cota de Farley
@@ -110,6 +113,10 @@ src/
       worker.ts           Corre el análisis en un Web Worker con progreso
       CasoAmbulancias.tsx La página, sección por sección
       Mapa.tsx, graficos.tsx  Mapa de la ciudad y gráficos SVG del caso
+    bicis/                C2: reparto de bicis de Ecobici con datos reales (bootstrap + SAA + validación en 2024)
+      datos.json          Resumen de los datos reales (<1 MB), generado por scripts/ecobici/preprocesar.py
+      analisis.ts         Análisis completo (puro); worker.ts lo corre fuera de la página
+      CasoBicis.tsx       La página; Reproduccion.tsx anima una mañana real minuto a minuto
   config.ts               Funcionalidades en prueba (p. ej. botón "Ver modelo correcto")
   scene/IsoCanvas.tsx     Lienzo Three.js isométrico reutilizable + primitivas (box, cylinder, pipe)
   scene/thumbnail.ts      Render único de una escena a imagen (miniaturas del menú)
