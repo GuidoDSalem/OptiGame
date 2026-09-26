@@ -45,6 +45,7 @@ src/
       Scene.tsx           Escena isométrica
     campana-marketing/    Nivel 2: PL con 4 variables, precios sombra y costos reducidos
     transporte-lacteos/   Nivel 3: problema de transporte, modelado con índices
+    escuela-aulas/        Nivel 4: asignación con variables binarias, relajación lineal vs. MIP
   config.ts               Funcionalidades en prueba (p. ej. botón "Ver modelo correcto")
   scene/IsoCanvas.tsx     Lienzo Three.js isométrico reutilizable + primitivas (box, cylinder, pipe)
   scene/thumbnail.ts      Render único de una escena a imagen (miniaturas del menú)
@@ -77,8 +78,8 @@ Si el problema tiene estructura repetida (orígenes × destinos, cursos × aulas
 en el nivel: conjuntos, parámetros y familias de variables. El jugador modela con "para cada" y
 sumatorias, y `compileIndexed` lo expande al modelo plano. Ver el nivel 3.
 
-Si el nivel necesita variables enteras o binarias (asignación, scheduling), `VariableSpec` ya soporta
-`integer: true` y HiGHS resuelve MIP.
+En niveles con índices, el tipo de cada familia de variables (continua, entera o binaria) lo elige
+el jugador en el modelador (`IndexedDraft.varTypes`); HiGHS resuelve MIP con branch and cut.
 
 ## Próximos pasos posibles
 

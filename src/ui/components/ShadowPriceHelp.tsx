@@ -36,6 +36,14 @@ export function ShadowPriceHelp({ level, model, result }: { level: Level; model:
         </p>
       )}
 
+      {!ex && result.rows.every((r) => r.dual === undefined) && (
+        <p className="example">
+          Tu modelo tiene variables enteras, así que el solver no informa precios sombra. En un modelo entero el
+          objetivo cambia a saltos cuando movés un límite. El botón <strong>+1</strong> igual te muestra el cambio
+          real.
+        </p>
+      )}
+
       <h5>Cómo leerlo</h5>
       <ul>
         <li>

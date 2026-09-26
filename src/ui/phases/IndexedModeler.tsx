@@ -8,6 +8,10 @@ import {
   objectiveTex,
   paramTex,
   varTex,
+  domainTex,
+  varType,
+  VAR_TYPES,
+  type VarType,
   type IndexedConstraint,
   type IndexedDraft,
 } from '../../engine/indexed';
@@ -93,6 +97,26 @@ export function IndexedModeler({ level, draft, onChange, onSolve, solving, revea
             </span>
           ))}
         </div>
+
+        <h4>Variables</h4>
+        {spec.vars.map((v) => (
+          <div key={v.id} className="irow">
+            <Tex tex={varTex(spec, v.id)} />
+            <span className="muted">{v.label.toLowerCase()}:</span>
+            <select
+              value={varType(draft, v.id)}
+              onChange={(e) =>
+                onChange({ ...draft, varTypes: { ...draft.varTypes, [v.id]: e.target.value as VarType } })
+              }
+            >
+              {VAR_TYPES.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        ))}
 
         <h4>Función objetivo</h4>
         <div className="irow">
@@ -211,7 +235,7 @@ export function IndexedModeler({ level, draft, onChange, onSolve, solving, revea
             ...draft.constraints.map(
               (c) => `& ${constraintTex(spec, c)} && ${forallTex(spec, c.forall)} \\\\`,
             ),
-            `& ${spec.vars.map((v) => varTex(spec, v.id)).join(', ')} \\geq 0`,
+            `& ${spec.vars.map((v) => domainTex(spec, draft, v.id)).join(',\\; ')}`,
             '\\end{aligned}',
           ].join('\n')}
         />

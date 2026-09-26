@@ -14,8 +14,9 @@ interface Props {
 const fmtDefault = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2));
 
 /** Variables de dos índices como matriz: filas = un conjunto, columnas = el otro. */
-export function MatrixView({ indexed, values, onChange, totals = true, format = fmtDefault }: Props) {
+export function MatrixView({ indexed, values, onChange, totals: totalsProp, format = fmtDefault }: Props) {
   const { spec, matrix } = indexed;
+  const totals = totalsProp ?? matrix.totals ?? true;
   const fam = getVar(spec, matrix.var);
   const rows = getSet(spec, matrix.rows);
   const cols = getSet(spec, matrix.cols);
@@ -43,7 +44,14 @@ export function MatrixView({ indexed, values, onChange, totals = true, format = 
               <th>{r.label}</th>
               {cols.items.map((c) => (
                 <td key={c.id} className={val(r.id, c.id) > 0 ? 'nz' : ''}>
-                  {onChange ? (
+                  {onChange && matrix.binary ? (
+                    <button
+                      className={`cell-toggle ${val(r.id, c.id) ? 'on' : ''}`}
+                      aria-pressed={val(r.id, c.id) === 1}
+                      aria-label={`${r.label} en ${c.label}`}
+                      onClick={() => onChange({ ...values, [id(r.id, c.id)]: val(r.id, c.id) ? 0 : 1 })}
+                    />
+                  ) : onChange ? (
                     <input
                       className="num-in"
                       inputMode="numeric"

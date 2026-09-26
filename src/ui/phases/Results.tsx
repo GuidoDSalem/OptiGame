@@ -40,6 +40,11 @@ export function Results({ level, model, result, diagnosis, optimum, manualBest, 
 
   // Resultados del botón "+1" por restricción (índice → resultado o 'loading').
   const [bumps, setBumps] = useState<Record<number, BumpResult | 'loading'>>({});
+  // Con muchas restricciones, arrancamos mostrando sólo las activas (los cuellos de botella).
+  const [showAllRows, setShowAllRows] = useState(false);
+  const manyRows = result.rows.length > 10;
+  const isActive = (i: number) => Math.abs(model.constraints[i].rhs - result.rows[i].activity) < 1e-6;
+  const activeCount = result.rows.filter((_, i) => isActive(i)).length;
   const tryBump = async (i: number) => {
     if (result.objective === undefined) return;
     setBumps((b) => ({ ...b, [i]: 'loading' }));
@@ -120,6 +125,12 @@ export function Results({ level, model, result, diagnosis, optimum, manualBest, 
                   Una restricción <strong>activa</strong> es la que "aprieta" (holgura 0). Su <strong>precio sombra</strong>{' '}
                   indica cuánto cambia el objetivo si su lado derecho sube una unidad.
                 </p>
+                {result.rows.every((r) => r.dual === undefined) && (
+                  <p className="note">
+                    Con variables enteras no hay precios sombra: el óptimo cambia "a saltos", no de forma continua. Usá{' '}
+                    <strong>+1</strong> para ver el efecto real de mover un límite.
+                  </p>
+                )}
                 <table className="data">
                   <thead>
                     <tr>
@@ -136,6 +147,7 @@ export function Results({ level, model, result, diagnosis, optimum, manualBest, 
                       const c = model.constraints[i];
                       const slack = Math.abs(c.rhs - r.activity);
                       const b = bumps[i];
+                      if (manyRows && !showAllRows && !isActive(i)) return null;
                       return (
                         <Fragment key={r.id}>
                         <tr className={slack < 1e-6 ? 'active' : ''}>
@@ -182,6 +194,13 @@ export function Results({ level, model, result, diagnosis, optimum, manualBest, 
                     })}
                   </tbody>
                 </table>
+                {manyRows && (
+                  <button className="link" onClick={() => setShowAllRows(!showAllRows)}>
+                    {showAllRows
+                      ? `Mostrar sólo las ${activeCount} activas`
+                      : `Mostrar las ${result.rows.length} restricciones (hay ${result.rows.length - activeCount} con holgura)`}
+                  </button>
+                )}
               </>
             )}
 
@@ -191,7 +210,7 @@ export function Results({ level, model, result, diagnosis, optimum, manualBest, 
                   <ReducedCostHelp level={level} />
                 </InfoTitle>
                 <p className="muted">
-                  Cuánto aumentaría el costo por cada camión que mandes por una ruta que el solver dejó sin usar.
+                  Cuánto cambiaría el objetivo por cada unidad que fuerces en una variable que el solver dejó en 0.
                 </p>
                 <MatrixView indexed={level.indexed} values={result.reducedCosts} totals={false} format={money} />
               </>

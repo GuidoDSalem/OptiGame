@@ -85,7 +85,17 @@ export interface IndexedLevel {
   reference: IndexedDraft;
   starter: IndexedDraft;
   /** Familia de variables de 2 índices que se muestra como matriz (intento manual y resultado). */
-  matrix: { var: string; rows: string; cols: string; rowParam?: string; colParam?: string };
+  matrix: {
+    var: string;
+    rows: string;
+    cols: string;
+    rowParam?: string;
+    colParam?: string;
+    /** En el intento manual, cada celda es un casillero sí/no. */
+    binary?: boolean;
+    /** Mostrar totales por fila y columna (por defecto sí). */
+    totals?: boolean;
+  };
 }
 
 /** Escena isométrica del nivel: se usa en el juego y para la miniatura del menú. */

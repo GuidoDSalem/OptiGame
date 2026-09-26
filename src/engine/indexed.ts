@@ -26,8 +26,16 @@ export interface VarFamily {
   over: string[];
   label: string;
   unit: string;
-  integer?: boolean;
 }
+
+/** Dominio de una familia de variables: lo elige el jugador. */
+export type VarType = 'cont' | 'int' | 'bin';
+
+export const VAR_TYPES: { id: VarType; label: string }[] = [
+  { id: 'cont', label: 'continua ≥ 0' },
+  { id: 'int', label: 'entera ≥ 0' },
+  { id: 'bin', label: 'binaria (0 o 1)' },
+];
 
 export interface IndexedSpec {
   sets: IndexSet[];
@@ -53,7 +61,11 @@ export interface IndexedDraft {
   sense: Sense;
   objective: { coef: string | null; var: string };
   constraints: IndexedConstraint[];
+  /** Tipo de cada familia de variables (por defecto continua). */
+  varTypes?: Record<string, VarType>;
 }
+
+export const varType = (d: IndexedDraft, famId: string): VarType => d.varTypes?.[famId] ?? 'cont';
 
 export type Assignment = Record<string, string>; // setId → itemId
 
@@ -119,7 +131,10 @@ export interface CompileResult {
 
 /** Expande el modelo indexado a un modelo plano. */
 export function compileIndexed(spec: IndexedSpec, d: IndexedDraft): CompileResult {
-  const variables = flatVars(spec).map(({ id, fam }) => ({ id, integer: fam.integer }));
+  const variables = flatVars(spec).map(({ id, fam }) => {
+    const t = varType(d, fam.id);
+    return { id, integer: t !== 'cont', ub: t === 'bin' ? 1 : undefined };
+  });
 
   const objective: Record<string, number> = {};
   const ofam = getVar(spec, d.objective.var);
@@ -195,4 +210,11 @@ export function constraintTex(spec: IndexedSpec, c: IndexedConstraint): string {
   const coef = c.coef ? paramTex(spec, c.coef) + '\\,' : '';
   const rhs = c.rhs.kind === 'param' ? paramTex(spec, c.rhs.param) : c.rhs.value || '?';
   return `${sums(spec, sumOver)} ${coef}${varTex(spec, fam.id)} ${OPTEX[c.op]} ${rhs}`;
+}
+
+/** Dominio de una familia de variables en notación matemática. */
+export function domainTex(spec: IndexedSpec, d: IndexedDraft, famId: string): string {
+  const t = varType(d, famId);
+  const dom = t === 'bin' ? '\\in \\{0,1\\}' : t === 'int' ? '\\in \\mathbb{Z}_{\\geq 0}' : '\\geq 0';
+  return `${varTex(spec, famId)} ${dom}`;
 }

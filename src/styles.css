@@ -204,3 +204,9 @@ button.mini { padding: 0.1em 0.5em; font-size: 0.78rem; color: var(--muted); }
 table.data tr.bump td { font-size: 0.85rem; background: var(--bg); color: var(--ink); }
 .good { color: var(--ok); }
 .bad { color: var(--bad); }
+button.cell-toggle {
+  width: 26px; height: 26px; padding: 0; border-radius: 6px; background: var(--surface);
+  border: 1px solid var(--line); vertical-align: middle;
+}
+button.cell-toggle.on { background: var(--ink); border-color: var(--ink); }
+table.matrix td:has(> button.cell-toggle) { text-align: center; }
