@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import type { EstacionBici } from '../../engine/bicis';
 import { nombreCorto } from './graficos';
 
@@ -66,6 +67,9 @@ interface Props {
   onClick?(i: number): void;
 }
 
+/** Alto máximo del mapa (px), para que no ocupe toda la pantalla. */
+const ALTO_MAX = 620;
+
 export function MapaCentro({
   estaciones,
   capacidad,
@@ -79,6 +83,8 @@ export function MapaCentro({
   onClick,
 }: Props) {
   const P = proyeccion(estaciones);
+  // Los viajes que vienen de afuera de la zona se recortan en el borde del mapa.
+  const clip = useId().replace(/:/g, '');
   const linea = (pts: LatLon[]) => pts.map((p, i) => `${i ? 'L' : 'M'}${P.xy(p[0], p[1]).join(',')}`).join(' ');
   const tw = compacto ? 5 : 9;
   const th = compacto ? 12 : 24;
@@ -88,10 +94,38 @@ export function MapaCentro({
       .slice(0, 8)
       .map((x) => x.i),
   );
+  // Etiquetas: arriba del tubo, salvo que choquen con otra ya ubicada; en ese caso, abajo.
+  const conEtiqueta = estaciones
+    .map((_, i) => i)
+    .filter((i) => !compacto && (etiquetas === 'todas' || (etiquetas === 'algunas' && principales.has(i))));
+  const abajo = new Set<number>();
+  const ocupadas: { x: number; y: number }[] = [];
+  for (const i of conEtiqueta) {
+    const [x, y] = P.xy(estaciones[i].lat, estaciones[i].lon);
+    const ly = y - th / 2 - 4;
+    if (ocupadas.some((o) => Math.abs(o.x - x) < 90 && Math.abs(o.y - ly) < 13)) {
+      abajo.add(i);
+      ocupadas.push({ x, y: y + th / 2 + 12 });
+    } else ocupadas.push({ x, y: ly });
+  }
 
   return (
-    <svg className={`mapa-centro ${compacto ? 'compacto' : ''}`} viewBox={`0 0 ${P.W} ${P.H}`} width="100%" role="img" aria-label="Mapa del Centro con las estaciones">
+    <svg
+      className={`mapa-centro ${compacto ? 'compacto' : ''}`}
+      viewBox={`0 0 ${P.W} ${P.H}`}
+      width="100%"
+      // El ancho sigue la proporción del mapa: así nunca sobra lugar a los costados.
+      style={compacto ? undefined : { maxWidth: `${(ALTO_MAX * P.W) / P.H}px` }}
+      role="img"
+      aria-label="Mapa del Centro con las estaciones"
+    >
+      <defs>
+        <clipPath id={clip}>
+          <rect width={P.W} height={P.H} rx={compacto ? 4 : 10} />
+        </clipPath>
+      </defs>
       <rect className="fondo" width={P.W} height={P.H} rx={compacto ? 4 : 10} />
+      <g clipPath={`url(#${clip})`}>
       <path className="agua" d={linea(DIQUES)} />
       <path className="avenida" d={linea(AV_9_DE_JULIO)} />
       <path className="avenida" d={linea(AV_DE_MAYO)} />
@@ -135,14 +169,15 @@ export function MapaCentro({
                 {Math.round(n)}
               </text>
             )}
-            {!compacto && (etiquetas === 'todas' || (etiquetas === 'algunas' && principales.has(i))) && (
-              <text className="nombre" x={x} y={y - th / 2 - 4} textAnchor="middle">
+            {conEtiqueta.includes(i) && (
+              <text className="nombre" x={x} y={abajo.has(i) ? y + th / 2 + 12 : y - th / 2 - 4} textAnchor="middle">
                 {nombreCorto(e.nombre)}
               </text>
             )}
           </g>
         );
       })}
+      </g>
     </svg>
   );
 }

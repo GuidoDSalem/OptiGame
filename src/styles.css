@@ -453,7 +453,7 @@ table.data.rounds td.cut { font-family: ui-monospace, SFMono-Regular, Menlo, mon
 .reproduccion b.sin-lugar { color: var(--warn); }
 .reproduccion .lado-a-lado { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 @media (max-width: 600px) { .reproduccion .lado-a-lado { grid-template-columns: 1fr; } }
-.mapa-centro { max-height: 620px; }
+.mapa-centro { height: auto; }
 .caso .dos-columnas.iguales { grid-template-columns: 1fr 1fr; }
 @media (max-width: 700px) { .caso .dos-columnas.iguales { grid-template-columns: 1fr; } }
 .leyenda-caso i.sin-bici { background: var(--bad); border-radius: 2px; }
