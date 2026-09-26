@@ -28,6 +28,7 @@ export function LevelView({ level, onExit }: { level: Level; onExit(): void }) {
   const [optimum, setOptimum] = useState<number | undefined>();
   const [solved, setSolved] = useState<Solved | null>(null);
   const [solving, setSolving] = useState(false);
+  const [revealed, setRevealed] = useState(false);
 
   // El óptimo real se calcula con el mismo solver, a partir del modelo de referencia.
   useEffect(() => {
@@ -86,7 +87,14 @@ export function LevelView({ level, onExit }: { level: Level; onExit(): void }) {
         {phase === 1 && <Manual level={level} values={manual} onChange={setManual} onNext={() => setPhase(2)} />}
         {phase === 2 && <Theory level={level} manual={manual} onNext={() => setPhase(3)} />}
         {phase === 3 && (
-          <Modeler level={level} draft={draft} onChange={setDraft} onSolve={runSolve} solving={solving} />
+          <Modeler
+            level={level}
+            draft={draft}
+            onChange={setDraft}
+            onSolve={runSolve}
+            solving={solving}
+            revealed={revealed}
+          />
         )}
         {phase === 4 && solved && (
           <Results
@@ -97,6 +105,11 @@ export function LevelView({ level, onExit }: { level: Level; onExit(): void }) {
             optimum={optimum}
             manualBest={manualBest}
             onBack={() => setPhase(3)}
+            onShowSolution={() => {
+              setDraft(draftFromModel(level.referenceModel));
+              setRevealed(true);
+              setPhase(3);
+            }}
           />
         )}
       </main>

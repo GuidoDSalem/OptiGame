@@ -64,7 +64,7 @@ export function diagnose(level: Level, model: LPModel, res: SolveResult, optimum
       title: 'Óptimo para tu modelo… pero no para la realidad',
       evaluation,
       messages: [
-        'El solver encontró la mejor solución **de tu modelo**, pero al aplicarla en la planta se rompen reglas que el modelo no captura:',
+        'El solver encontró la mejor solución **de tu modelo**, pero al aplicarla en la realidad se rompen reglas que el modelo no captura:',
         ...broken.map((c) => `**${c.label}** (${c.value}, límite ${c.limit}): ${c.failMessage ?? ''}`),
         ...extra,
       ],

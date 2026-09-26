@@ -1,3 +1,4 @@
+import { FEATURES } from '../../config';
 import type { Diagnosis } from '../../engine/diagnose';
 import type { LPModel } from '../../engine/model';
 import { stars } from '../../engine/score';
@@ -16,15 +17,20 @@ interface Props {
   optimum?: number;
   manualBest?: number;
   onBack(): void;
+  /** Carga el modelo de referencia en el modelador (provisorio, ver FEATURES). */
+  onShowSolution(): void;
 }
 
 const money = (n: number) => n.toLocaleString('es-AR', { maximumFractionDigits: 2 });
 
-export function Results({ level, model, result, diagnosis, optimum, manualBest, onBack }: Props) {
+export function Results({ level, model, result, diagnosis, optimum, manualBest, onBack, onShowSolution }: Props) {
   const ev = diagnosis.evaluation;
   const n = ev ? stars(ev, optimum) : 0;
   const plot = level.plot;
   const u = level.objective.unit;
+  const isMin = level.objective.sense === 'min';
+  // Cuánto mejoró el solver respecto del mejor intento manual (positivo = mejor).
+  const improvement = ev && manualBest !== undefined ? (isMin ? manualBest - ev.objective : ev.objective - manualBest) : 0;
 
   return (
     <div className="two-col">
@@ -73,12 +79,12 @@ export function Results({ level, model, result, diagnosis, optimum, manualBest, 
                     </td>
                   </tr>
                 )}
-                {diagnosis.verdict === 'perfect' && manualBest !== undefined && manualBest > ev.objective + 1e-6 && (
+                {diagnosis.verdict === 'perfect' && improvement > 1e-6 && (
                   <tr>
-                    <td>Ahorro vs. intuición</td>
+                    <td>Mejora vs. intuición</td>
                     <td className="r">
                       {u}
-                      {money(manualBest - ev.objective)} por día
+                      {money(improvement)}
                     </td>
                   </tr>
                 )}
@@ -125,11 +131,45 @@ export function Results({ level, model, result, diagnosis, optimum, manualBest, 
                 </table>
               </>
             )}
+
+            {Object.keys(result.reducedCosts).length > 0 && (
+              <>
+                <p className="muted">
+                  El <strong>costo reducido</strong> de una variable que quedó en 0 indica cuánto empeoraría el
+                  objetivo por cada unidad que la fuerces a usar.
+                </p>
+                <table className="data">
+                  <thead>
+                    <tr>
+                      <th>Variable</th>
+                      <th className="r">Valor</th>
+                      <th className="r">Costo reducido</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {level.variables.map((v) => (
+                      <tr key={v.id}>
+                        <td>
+                          <Tex tex={v.symbol} /> {v.label}
+                        </td>
+                        <td className="r">{money(result.values[v.id] ?? 0)}</td>
+                        <td className="r">{money(result.reducedCosts[v.id] ?? 0)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
+            )}
           </>
         )}
 
         <div className="actions">
           <button onClick={onBack}>← Volver al modelo</button>
+          {FEATURES.showSolutionButton && (
+            <button onClick={onShowSolution} title="Función provisoria">
+              Ver modelo correcto
+            </button>
+          )}
         </div>
       </div>
 

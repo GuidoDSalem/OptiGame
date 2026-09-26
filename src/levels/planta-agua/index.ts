@@ -42,7 +42,7 @@ export const plantaAgua: Level = {
     variables: [{ id: 'rio' }, { id: 'pozo' }],
     constraints: [],
   },
-  plot: { x: 'rio', y: 'pozo', xmax: 60, ymax: 60 },
+  plot: { x: 'rio', y: 'pozo', xmax: 60, ymax: 60, isoMax: 12000 },
   Scene: PlantaScene,
 
   briefing: [

@@ -17,6 +17,8 @@ export interface SolveResult {
   rawStatus: string;
   objective?: number;
   values: Record<string, number>;
+  /** Costo reducido de cada variable (sólo en LP continuos). */
+  reducedCosts: Record<string, number>;
   rows: RowResult[];
   lp: string;
   error?: string;
@@ -46,7 +48,7 @@ export async function solve(model: LPModel): Promise<SolveResult> {
   try {
     highs = await getHighs();
   } catch (e) {
-    return { status: 'error', rawStatus: 'Load error', values: {}, rows: [], lp, error: String(e) };
+    return { status: 'error', rawStatus: 'Load error', values: {}, reducedCosts: {}, rows: [], lp, error: String(e) };
   }
 
   let res: ReturnType<Highs['solve']>;
@@ -55,7 +57,7 @@ export async function solve(model: LPModel): Promise<SolveResult> {
   } catch (e) {
     // Un solver de una sola llamada puede quedar en mal estado tras un error: lo recargamos.
     highsPromise = null;
-    return { status: 'error', rawStatus: 'Solve error', values: {}, rows: [], lp, error: String(e) };
+    return { status: 'error', rawStatus: 'Solve error', values: {}, reducedCosts: {}, rows: [], lp, error: String(e) };
   }
 
   const raw = res.Status as string;
@@ -68,12 +70,14 @@ export async function solve(model: LPModel): Promise<SolveResult> {
           ? 'unbounded'
           : 'error';
 
-  if (status !== 'optimal') return { status, rawStatus: raw, values: {}, rows: [], lp };
+  if (status !== 'optimal') return { status, rawStatus: raw, values: {}, reducedCosts: {}, rows: [], lp };
 
   const values: Record<string, number> = {};
+  const reducedCosts: Record<string, number> = {};
   for (const v of model.variables) {
-    const col = (res.Columns as Record<string, { Primal?: number }>)[lpName(v.id)];
+    const col = (res.Columns as Record<string, { Primal?: number; Dual?: number }>)[lpName(v.id)];
     values[v.id] = clean(col?.Primal ?? 0);
+    if (col?.Dual !== undefined) reducedCosts[v.id] = clean(col.Dual);
   }
   const rows: RowResult[] = model.constraints.map((c, i) => {
     const r = res.Rows[i] as { Primal?: number; Dual?: number } | undefined;
@@ -84,7 +88,7 @@ export async function solve(model: LPModel): Promise<SolveResult> {
       dual: r?.Dual === undefined ? undefined : clean(r.Dual),
     };
   });
-  return { status, rawStatus: raw, objective: clean(res.ObjectiveValue), values, rows, lp };
+  return { status, rawStatus: raw, objective: clean(res.ObjectiveValue), values, reducedCosts, rows, lp };
 }
 
 /** Evita mostrar cosas como -0 o 23.999999999. */

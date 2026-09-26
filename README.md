@@ -21,7 +21,9 @@ npm run build      # build estático en dist/
 4. **Modelado**: arma función objetivo y restricciones. Se ve en notación matemática y en formato LP.
 5. **Resultado**: HiGHS resuelve el modelo del jugador. La solución se prueba contra el mundo real y
    se compara con el óptimo. Hay diagnóstico (infactible, no acotado, "óptimo de tu modelo pero
-   inválido en la realidad", subóptimo) y análisis de sensibilidad (holguras y precios sombra).
+   inválido en la realidad", subóptimo) y análisis de sensibilidad (holguras, precios sombra y
+   costos reducidos). Provisoriamente hay un botón "Ver modelo correcto" que carga el modelo de
+   referencia en el modelador; se apaga con `FEATURES.showSolutionButton` en `src/config.ts`.
 
 ## Estructura
 
@@ -36,10 +38,12 @@ src/
   levels/
     types.ts              Contrato `Level`: historia, teoría, variables, modelo de referencia, mundo, escena
     index.ts              Registro de niveles
-    planta-agua/          Nivel 1
+    planta-agua/          Nivel 1: PL con 2 variables, método gráfico, restricción de mezcla
       data.ts             Todos los números del nivel
       index.ts            Definición: textos, modelo de referencia, evaluate() del mundo, pistas
       Scene.tsx           Escena isométrica
+    campana-marketing/    Nivel 2: PL con 4 variables, precios sombra y costos reducidos
+  config.ts               Funcionalidades en prueba (p. ej. botón "Ver modelo correcto")
   scene/IsoCanvas.tsx     Lienzo Three.js isométrico reutilizable + primitivas (box, cylinder, pipe)
   ui/
     LevelView.tsx         Orquesta las 5 fases

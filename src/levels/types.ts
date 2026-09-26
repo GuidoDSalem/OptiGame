@@ -69,6 +69,6 @@ export interface Level {
   /** Pistas progresivas para el modelador. */
   hints: string[];
   /** Si el nivel tiene 2 variables, se puede mostrar el método gráfico. */
-  plot?: { x: string; y: string; xmax: number; ymax: number };
+  plot?: { x: string; y: string; xmax: number; ymax: number; /** Máximo del slider de la recta de isocosto. */ isoMax: number };
   Scene: ComponentType<SceneProps>;
 }

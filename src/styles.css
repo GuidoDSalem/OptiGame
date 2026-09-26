@@ -123,13 +123,19 @@ table.data tr.active td { background: var(--accent-soft); }
 .plot .pt circle { fill: var(--ink); }
 .plot .pt text { fill: var(--ink); font-size: 11px; font-weight: 600; }
 
-/* Modeler */
-.row-edit { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin: 6px 0; }
-.term { display: inline-flex; align-items: center; gap: 4px; }
-.plus { color: var(--muted); margin: 0 2px; }
+/* Modeler: una columna por variable, una fila por restricción */
+.model-grid { border-collapse: separate; border-spacing: 4px; margin: 12px -4px 8px; }
+.model-grid th { font-weight: 400; text-align: center; padding-bottom: 2px; font-size: 0.85rem; color: var(--muted); }
+.model-grid td { padding: 0; }
+.model-grid .grid-section td {
+  padding-top: 14px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600;
+}
+.model-grid .grid-note { font-size: 0.82rem; padding-left: 6px; }
+.model-grid select { width: 100%; }
+.model-grid select.op { width: 3.8em; }
 .num-in { width: 4.2em; text-align: right; font-variant-numeric: tabular-nums; }
 .num-in.bad { border-color: var(--bad); background: #fdecea; }
-.name-in { width: 7.5em; }
+.name-in { width: 8.5em; }
 .actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .actions .primary { margin-top: 1.2em; }
 .actions button:not(.primary) { margin-top: 1.2em; }
