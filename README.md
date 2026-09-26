@@ -4,13 +4,15 @@ Juego educativo de **optimización matemática**. Sos un consultor: cada nivel e
 (una planta potabilizadora, una escuela, una minera…) con un problema real. Lo modelás y lo resolvés
 con un **solver de verdad** ([HiGHS](https://highs.dev/) compilado a WebAssembly, corre en el navegador).
 
+**Jugalo online:** https://guidodsalem.github.io/OptiGame/
+
 ## Cómo correrlo
 
 ```bash
 npm install
 npm run dev        # http://localhost:5173
 npm test           # tests del motor y de los niveles (usan el solver real)
-npm run build      # build estático en dist/
+npm run build      # build estático en dist/ (lo publica .github/workflows/deploy.yml)
 ```
 
 ## Ciclo de cada nivel
