@@ -224,7 +224,7 @@ table.matrix td:has(> button.cell-toggle) { text-align: center; }
 .iterm { margin: 3px 0; }
 .iterm select.sign { width: 3.2em; }
 button.link.small { font-size: 0.82rem; }
-.iterm { flex-wrap: nowrap; }
+.iterm { flex-wrap: wrap; }
 .iterm select { max-width: 8.5em; text-overflow: ellipsis; }
 .iterm select.sign { width: 3.2em; }
 

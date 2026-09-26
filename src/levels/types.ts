@@ -144,6 +144,8 @@ export interface IndexedLevel {
    */
   /** En el modelador, cada término puede fijar un elemento (y_Hospital) en vez de sumar. */
   pickItems?: boolean;
+  /** En el modelador, cada término puede llevar dos coeficientes (p_s · t_{dc}). */
+  twoCoefs?: boolean;
   periodTable?: {
     set: string;
     /** Familia que el jugador edita en el intento manual. */

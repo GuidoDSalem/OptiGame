@@ -39,6 +39,7 @@ src/
     geometry.ts           Región factible 2D (método gráfico)
     benders.ts            Descomposición de Benders: maestro, subproblema, cortes por dualidad, cotas
     ramificacion.ts       Branch and bound y cortes de Gomory en 2 variables (LP exacto por vértices, tableau)
+    estocastico.ts        Benders estocástico (L-shaped): escenarios, multi-corte vs. corte único, VSS y EVPI
     columnas.ts           Generación de columnas (corte de bobinas): maestro, pricing-mochila, cota de Farley
     pareto.ts             Dos objetivos: frontera exacta por ε-restricción y puntos soportados
     routing.ts            Ruteo: circuitos, heurísticas, cortes de subtour, formulación MTZ
@@ -94,6 +95,12 @@ src/
       BendersPanel.tsx    Intento manual: el jugador hace de maestro (rondas, cortes, cotas)
       BendersAuto.tsx     Resultado: Benders automático vs. el modelo completo del jugador
       cooperativa.ts      Variante: la cooperativa láctea abre depósitos regionales
+    estocastico/          Avanzado A4 como PLANTILLA: plantas de acopio con escenarios de cosecha
+      template.ts         crearNivelEstocastico(variante): modelo en dos etapas, teoría, mundo
+      EstocasticoPanel.tsx Intento manual: el jugador elige plantas y cada escenario devuelve su corte
+      EstocasticoAuto.tsx Resultado: plan estocástico vs. promedio vs. peor año, VSS, EVPI, multi vs. único
+      Scene.ts            Mapa con plantas, campos, silos bolsa y el reparto esperado
+      acopio.ts           Variante: cooperativa agrícola con año lluvioso, normal y sequía
   config.ts               Funcionalidades en prueba (p. ej. botón "Ver modelo correcto")
   scene/IsoCanvas.tsx     Lienzo Three.js isométrico reutilizable + primitivas (box, cylinder, pipe)
   scene/thumbnail.ts      Render único de una escena a imagen (miniaturas del menú)

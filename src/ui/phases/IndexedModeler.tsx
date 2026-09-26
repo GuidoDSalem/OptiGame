@@ -3,6 +3,7 @@ import {
   compileIndexed,
   constraintTex,
   forallTex,
+  coefsOf,
   getParam,
   getSet,
   getVar,
@@ -44,6 +45,7 @@ function TermsEditor({
   forall,
   allowLag,
   allowPick,
+  allowCoef2,
   onChange,
 }: {
   spec: IndexedSpec;
@@ -52,6 +54,8 @@ function TermsEditor({
   allowLag: boolean;
   /** Permite elegir un elemento particular en vez de sumar (p. ej. y_Hospital). */
   allowPick?: boolean;
+  /** Permite un segundo coeficiente (p. ej. probabilidad × costo). */
+  allowCoef2?: boolean;
   onChange(t: Term[]): void;
 }) {
   const set = (i: number, patch: Partial<Term>) => onChange(terms.map((t, j) => (j === i ? { ...t, ...patch } : t)));
@@ -97,6 +101,18 @@ function TermsEditor({
                 </option>
               ))}
             </select>
+            {allowCoef2 && t.coef && (
+              <select value={t.coef2 ?? ''} onChange={(e) => set(i, { coef2: e.target.value || null })} title="Otro coeficiente">
+                <option value="">· 1</option>
+                {spec.params
+                  .filter((p) => p.id !== t.coef)
+                  .map((p) => (
+                    <option key={p.id} value={p.id}>
+                      · {p.symbol} · {p.name.toLowerCase()}
+                    </option>
+                  ))}
+              </select>
+            )}
             {spec.vars.length > 1 ? (
               <select value={t.var} onChange={(e) => set(i, { var: e.target.value, lag: undefined })} title="Variable">
                 {spec.vars.map((v) => (
@@ -221,6 +237,7 @@ export function IndexedModeler({ level, draft, onChange, onSolve, solving, revea
           forall={[]}
           allowLag={false}
           allowPick={level.indexed.pickItems}
+          allowCoef2={level.indexed.twoCoefs}
           onChange={(terms) => onChange({ ...draft, objective: { terms } })}
         />
 
@@ -230,7 +247,7 @@ export function IndexedModeler({ level, draft, onChange, onSolve, solving, revea
           // "Para cada" puede usar cualquier conjunto del que dependan las variables de la restricción.
           // Se puede repetir sobre los índices de las variables y de los coeficientes (a_{ip}·x_p para cada i).
           const indexable = [
-            ...new Set(c.terms.flatMap((t) => [...getVar(spec, t.var).over, ...(t.coef ? getParam(spec, t.coef).over : [])])),
+            ...new Set(c.terms.flatMap((t) => [...getVar(spec, t.var).over, ...coefsOf(t).flatMap((k) => getParam(spec, k).over)])),
           ];
           const forallOptions = subsets(indexable);
           if (!forallOptions.some((o) => o.join(',') === c.forall.join(','))) forallOptions.push(c.forall);
@@ -271,6 +288,7 @@ export function IndexedModeler({ level, draft, onChange, onSolve, solving, revea
                 forall={c.forall}
                 allowLag
                 allowPick={level.indexed.pickItems}
+                allowCoef2={level.indexed.twoCoefs}
                 onChange={(terms) => setRow(c.key, { terms })}
               />
               <div className="irow">

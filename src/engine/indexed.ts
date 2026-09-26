@@ -64,6 +64,8 @@ export interface Term {
   sign: 1 | -1;
   /** Parámetro que multiplica a la variable (null = 1). */
   coef: string | null;
+  /** Segundo parámetro que también multiplica (p. ej. probabilidad × costo: p_s · t_{dc}). */
+  coef2?: string | null;
   var: string;
   /** Desfase en el conjunto ordenado de la variable: −1 = período anterior. */
   lag?: number;
@@ -76,6 +78,12 @@ export interface Term {
 
 export const term = (v: string, coef: string | null = null, sign: 1 | -1 = 1, lag?: number): Term =>
   lag ? { sign, coef, var: v, lag } : { sign, coef, var: v };
+
+/** Término con dos coeficientes: `termProd('x', 'p', 't')` = p_s · t_{dc} · x_{dcs}. */
+export const termProd = (v: string, coef: string, coef2: string, sign: 1 | -1 = 1): Term => ({ sign, coef, coef2, var: v });
+
+/** Coeficientes (0, 1 o 2 parámetros) de un término. */
+export const coefsOf = (t: Term) => [t.coef, t.coef2].filter((c): c is string => !!c);
 
 /** Término sobre un elemento particular: `termAt('y', { P: 'hosp' }, -1)` = −y_{hosp}. */
 export const termAt = (v: string, at: Record<string, string>, sign: 1 | -1 = 1, coef: string | null = null): Term => ({
@@ -176,15 +184,16 @@ export function validateConstraint(spec: IndexedSpec, c: IndexedConstraint): str
   if (c.terms.length === 0) errs.push('La restricción no tiene términos.');
 
   // Un "para cada" tiene sentido si lo usa alguna variable o algún coeficiente (p. ej. a_{ip}·x_p para cada i).
-  const used = new Set(c.terms.flatMap((t) => [...getVar(spec, t.var).over, ...(t.coef ? getParam(spec, t.coef).over : [])]));
+  const used = new Set(c.terms.flatMap((t) => [...getVar(spec, t.var).over, ...coefsOf(t).flatMap((k) => getParam(spec, k).over)]));
   const unused = c.forall.filter((s) => !used.has(s));
   if (unused.length)
     errs.push(`Se repite "para cada" ${idx(unused)}, pero ninguna variable depende de ${idx(unused)}.`);
 
   for (const t of c.terms) {
     const fam = getVar(spec, t.var);
-    if (t.coef && !isSubset(getParam(spec, t.coef).over, [...fam.over, ...c.forall]))
-      errs.push(`El coeficiente ${getParam(spec, t.coef).symbol} tiene índices que ni ${fam.symbol} ni el "para cada" tienen.`);
+    for (const k of coefsOf(t))
+      if (!isSubset(getParam(spec, k).over, [...fam.over, ...c.forall]))
+        errs.push(`El coeficiente ${getParam(spec, k).symbol} tiene índices que ni ${fam.symbol} ni el "para cada" tienen.`);
     for (const s of Object.keys(t.at ?? {})) {
       if (!fam.over.includes(s)) errs.push(`${fam.symbol} no tiene el índice ${getSet(spec, s).index}.`);
       else if (c.forall.includes(s))
@@ -224,7 +233,7 @@ function addTerm(spec: IndexedSpec, t: Term, forall: string[], a: Assignment, in
     const full = shift(spec, t, { ...a, ...b, ...t.at });
     if (!full || !validFor(fam, full)) continue;
     const id = varId(fam, full);
-    const k = t.sign * (t.coef ? paramValue(spec, t.coef, full) : 1);
+    const k = coefsOf(t).reduce((acc, p) => acc * paramValue(spec, p, full), t.sign as number);
     into[id] = (into[id] ?? 0) + k;
   }
 }
@@ -304,7 +313,7 @@ export function termsTex(spec: IndexedSpec, terms: Term[], forall: string[]): st
     .map((t, i) => {
       const fam = getVar(spec, t.var);
       const sumOver = summedSets(fam, t, forall);
-      const coef = t.coef ? paramTex(spec, t.coef) + '\\,' : '';
+      const coef = coefsOf(t).map((k) => paramTex(spec, k) + '\\,').join('');
       const body = `${sums(spec, sumOver)} ${coef}${varTex(spec, fam.id, t.lag, t.at)}`.trim();
       const sign = t.sign < 0 ? '-' : i > 0 ? '+' : '';
       return `${sign} ${body}`;
