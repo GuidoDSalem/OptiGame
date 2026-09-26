@@ -18,7 +18,8 @@ export interface Periodo {
 }
 
 export interface Vocabulario {
-  periodo: { singular: string; plural: string; la: string }; // "semana", "semanas", "la semana"
+  /** Frases con género armadas: "una semana"/"un turno", "la semana"/"el turno", "pocas semanas"… */
+  periodo: { singular: string; plural: string; la: string; una: string; pocas: string }; // "semana", "semanas", "la semana", "una semana", "pocas semanas"
   unidad: string; // "kt"
   moneda: string; // "$k"
   x: string; // "Mineral enviado"
@@ -28,6 +29,8 @@ export interface Vocabulario {
   capacidad: string; // "Capacidad de la mina"
   costo: string; // "Costo de extracción y flete"
   costoFijo: string; // "Contratar el tren"
+  /** Ejemplo absurdo de pagar el costo fijo "a medias", p. ej. 'alquilar "0,4 trenes"'. */
+  fijoAMedias: string;
   costoStock: string; // "Guardar en el puerto"
   capStock: string; // "Capacidad del puerto"
   /** Mensajes del mundo. */
@@ -168,7 +171,7 @@ export function crearNivelPlanificacion(v: VariantePlanificacion): Level {
     { type: 'h', text: 'Costos fijos: la binaria que "enciende"' },
     {
       type: 'p',
-      text: `Operar una ${V.periodo.singular} cuesta $f$, mandes 1 o 40 ${V.unidad}. Ese costo es un **escalón**, no es lineal. Se modela con una binaria $z_t$ y una restricción de **activación**:`,
+      text: `Operar ${V.periodo.una} cuesta $f$, sea poco o mucho lo que se mueva. Ese costo es un **escalón**, no es lineal. Se modela con una binaria $z_t$ y una restricción de **activación**:`,
     },
     { type: 'tex', tex: 'x_t \\leq K_t\\, z_t \\qquad \\forall\\, t \\in T' },
     {
@@ -176,7 +179,7 @@ export function crearNivelPlanificacion(v: VariantePlanificacion): Level {
       items: [
         'Si $z_t = 0$, obliga a $x_t = 0$: no se opera.',
         'Si $z_t = 1$, permite hasta $K_t$. De paso, es la restricción de capacidad.',
-        'Como el objetivo suma $f\\, z_t$, el solver sólo "enciende" una semana si le conviene.',
+        `Como el objetivo suma $f\\, z_t$, el solver sólo "enciende" ${V.periodo.una} si le conviene.`,
       ],
     },
     {
@@ -185,15 +188,15 @@ export function crearNivelPlanificacion(v: VariantePlanificacion): Level {
     },
     {
       type: 'p',
-      text: 'Si $z_t$ fuera continua, el solver pondría $z_t = x_t / K_t$ y pagaría sólo una **fracción** del costo fijo, como alquilar "0,4 trenes". Otra vez: hay que declararla binaria.',
+      text: `Si $z_t$ fuera continua, el solver pondría $z_t = x_t / K_t$ y pagaría sólo una **fracción** del costo fijo, como ${V.fijoAMedias}. Otra vez: hay que declararla binaria.`,
     },
     { type: 'h', text: 'El dilema' },
     {
       type: 'list',
       items: [
-        '**El costo fijo** empuja a agrupar: mandar mucho en pocas semanas.',
+        `**El costo fijo** empuja a agrupar: mover mucho en ${V.periodo.pocas}.`,
         '**El costo de stock** empuja a mandar justo a tiempo.',
-        '**La capacidad** obliga a adelantarse cuando se viene una semana difícil.',
+        `**La capacidad** obliga a adelantarse cuando se viene ${V.periodo.una} difícil.`,
       ],
     },
     {
@@ -237,7 +240,7 @@ export function crearNivelPlanificacion(v: VariantePlanificacion): Level {
     hints: pistas,
 
     // En el intento manual sólo se decide x: el stock resulta de simular y el costo fijo se paga
-    // en las semanas en que se manda algo.
+    // en los períodos en que se mueve algo.
     manualDerive(values) {
       const out = { ...values };
       const s = simularStock(v, values);

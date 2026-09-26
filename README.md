@@ -54,8 +54,9 @@ src/
       datacenter.ts       Variante: trabajos nocturnos → servidores (RAM y ventana horaria)
     planificacion/        Nivel 5 como PLANTILLA: multi-período con costos fijos (lot sizing)
       template.ts         crearNivelPlanificacion(variante): balance de stock, activación big-M
-      Scene.ts            Escena de línea de tiempo (envío / stock / demanda por período)
+      Scene.ts            Escena de línea de tiempo (envío / stock / demanda), estilos "minera" e "hidro"
       minera.ts           Variante: mina → tren → puerto → barcos
+      hidro.ts            Variante: central de bombeo (bombear barato, entregar en el pico)
   config.ts               Funcionalidades en prueba (p. ej. botón "Ver modelo correcto")
   scene/IsoCanvas.tsx     Lienzo Three.js isométrico reutilizable + primitivas (box, cylinder, pipe)
   scene/thumbnail.ts      Render único de una escena a imagen (miniaturas del menú)

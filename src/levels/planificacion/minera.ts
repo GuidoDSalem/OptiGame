@@ -28,7 +28,7 @@ export const minera: VariantePlanificacion = {
     labels: { envio: 'Tren', stock: 'Stock en puerto', demanda: 'Barcos', origen: 'Mina' },
   }),
   vocab: {
-    periodo: { singular: 'semana', plural: 'semanas', la: 'la semana' },
+    periodo: { singular: 'semana', plural: 'semanas', la: 'la semana', una: 'una semana', pocas: 'pocas semanas' },
     unidad: 'kt',
     moneda: '$k',
     x: 'Mineral enviado',
@@ -38,6 +38,7 @@ export const minera: VariantePlanificacion = {
     capacidad: 'Capacidad de la mina',
     costo: 'Extracción y flete',
     costoFijo: 'Contratar el tren',
+    fijoAMedias: 'alquilar "0,4 trenes"',
     costoStock: 'Guardar en el puerto',
     capStock: 'Capacidad del puerto',
     faltante: (t, q) => `El barco de la ${t} zarpó con ${q} kt de menos: penalidad del cliente.`,
