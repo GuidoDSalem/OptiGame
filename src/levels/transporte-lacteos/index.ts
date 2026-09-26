@@ -1,4 +1,4 @@
-import { compileIndexed, type IndexedDraft, type IndexedSpec } from '../../engine/indexed';
+import { compileIndexed, term, type IndexedDraft, type IndexedSpec } from '../../engine/indexed';
 import type { Check, Level } from '../types';
 import { CENTROS, COSTO, PLANTAS } from './data';
 import { transporteScene } from './Scene';
@@ -24,10 +24,10 @@ const spec: IndexedSpec = {
 
 const reference: IndexedDraft = {
   sense: 'min',
-  objective: { coef: 'c', var: 'x' },
+  objective: { terms: [term('x', 'c')] },
   constraints: [
-    { key: 'oferta', name: 'Oferta', forall: ['I'], coef: null, var: 'x', op: '<=', rhs: { kind: 'param', param: 'o' } },
-    { key: 'demanda', name: 'Demanda', forall: ['J'], coef: null, var: 'x', op: '>=', rhs: { kind: 'param', param: 'd' } },
+    { key: 'oferta', name: 'Oferta', forall: ['I'], terms: [term('x')], op: '<=', rhs: { kind: 'param', param: 'o' } },
+    { key: 'demanda', name: 'Demanda', forall: ['J'], terms: [term('x')], op: '>=', rhs: { kind: 'param', param: 'd' } },
   ],
 };
 
@@ -67,7 +67,7 @@ export const transporteLacteos: Level = {
   indexed: {
     spec,
     reference,
-    starter: { sense: 'max', objective: { coef: null, var: 'x' }, constraints: [] },
+    starter: { sense: 'max', objective: { terms: [term('x')] }, constraints: [] },
     matrix: { var: 'x', rows: 'I', cols: 'J', rowParam: 'o', colParam: 'd' },
   },
 

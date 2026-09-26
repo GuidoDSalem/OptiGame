@@ -218,3 +218,12 @@ table.matrix td:has(> button.cell-toggle) { text-align: center; }
 .versions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
 .versions button { font-size: 0.78rem; padding: 0.15em 0.7em; border-radius: 999px; color: var(--muted); }
 .versions button.on { color: var(--ink); border-color: var(--ink); }
+
+/* Editor de términos */
+.terms { margin: 4px 0 2px; }
+.iterm { margin: 3px 0; }
+.iterm select.sign { width: 3.2em; }
+button.link.small { font-size: 0.82rem; }
+.iterm { flex-wrap: nowrap; }
+.iterm select { max-width: 8.5em; text-overflow: ellipsis; }
+.iterm select.sign { width: 3.2em; }

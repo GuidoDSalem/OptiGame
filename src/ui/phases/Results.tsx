@@ -10,7 +10,7 @@ import type { Level } from '../../levels/types';
 import { Checks, Stars } from '../components/Checks';
 import { FeasiblePlot } from '../components/FeasiblePlot';
 import { InfoTitle } from '../components/InfoButton';
-import { MatrixView } from '../components/MatrixView';
+import { DecisionTable } from '../components/DecisionTable';
 import { Rich } from '../components/Rich';
 import { ReducedCostHelp, ShadowPriceHelp } from '../components/ShadowPriceHelp';
 import { Tex } from '../components/Tex';
@@ -69,7 +69,7 @@ export function Results({ level, model, result, diagnosis, optimum, manualBest, 
         {result.status === 'optimal' && ev && (
           <>
             <h4>Decisión del solver</h4>
-            {level.indexed && <MatrixView indexed={level.indexed} values={result.values} format={money} />}
+            {level.indexed && <DecisionTable indexed={level.indexed} values={result.values} format={money} />}
             <table className="data">
               <tbody>
                 {!level.indexed &&
@@ -212,7 +212,7 @@ export function Results({ level, model, result, diagnosis, optimum, manualBest, 
                 <p className="muted">
                   Cuánto cambiaría el objetivo por cada unidad que fuerces en una variable que el solver dejó en 0.
                 </p>
-                <MatrixView indexed={level.indexed} values={result.reducedCosts} totals={false} format={money} />
+                <DecisionTable indexed={level.indexed} values={result.reducedCosts} totals={false} format={money} showParams={false} />
               </>
             )}
 

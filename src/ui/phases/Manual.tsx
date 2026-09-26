@@ -1,7 +1,7 @@
 import type { Level } from '../../levels/types';
 import { LevelScene } from '../../scene/LevelScene';
 import { Checks } from '../components/Checks';
-import { MatrixView } from '../components/MatrixView';
+import { DecisionTable } from '../components/DecisionTable';
 import { Tex } from '../components/Tex';
 
 interface Props {
@@ -20,7 +20,7 @@ export function Manual({ level, values, onChange, onNext }: Props) {
           {level.indexed ? 'Completá la tabla' : 'Mové los controles'} y buscá la mejor decisión que cumpla todas
           las reglas. Sin fórmulas: pura intuición.
         </p>
-        {level.indexed && <MatrixView indexed={level.indexed} values={values} onChange={onChange} />}
+        {level.indexed && <DecisionTable indexed={level.indexed} values={values} onChange={onChange} />}
         {!level.indexed &&
           level.variables.map((v) => (
           <label key={v.id} className="slider">

@@ -9,6 +9,10 @@ import {
   paramTex,
   varTex,
   domainTex,
+  orderedSetOf,
+  term,
+  type IndexedSpec,
+  type Term,
   varType,
   VAR_TYPES,
   type VarType,
@@ -29,6 +33,77 @@ interface Props {
   onSolve(): void;
   solving: boolean;
   revealed?: boolean;
+}
+
+/** Editor de una suma de términos: signo · coeficiente · variable (con desfase opcional). */
+function TermsEditor({
+  spec,
+  terms,
+  forall,
+  allowLag,
+  onChange,
+}: {
+  spec: IndexedSpec;
+  terms: Term[];
+  forall: string[];
+  allowLag: boolean;
+  onChange(t: Term[]): void;
+}) {
+  const set = (i: number, patch: Partial<Term>) => onChange(terms.map((t, j) => (j === i ? { ...t, ...patch } : t)));
+  return (
+    <div className="terms">
+      {terms.map((t, i) => {
+        const fam = getVar(spec, t.var);
+        const sumOver = fam.over.filter((s) => !forall.includes(s));
+        const os = orderedSetOf(spec, fam);
+        return (
+          <div key={i} className="irow iterm">
+            <select className="sign" value={t.sign} onChange={(e) => set(i, { sign: Number(e.target.value) as 1 | -1 })}>
+              <option value={1}>+</option>
+              <option value={-1}>−</option>
+            </select>
+            {sumOver.length > 0 && <Tex tex={sumOver.map((s) => `\\sum_{${getSet(spec, s).index}}`).join(' ')} />}
+            <select value={t.coef ?? ''} onChange={(e) => set(i, { coef: e.target.value || null })} title="Coeficiente">
+              <option value="">1</option>
+              {spec.params.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.symbol} · {p.name.toLowerCase()}
+                </option>
+              ))}
+            </select>
+            {spec.vars.length > 1 ? (
+              <select value={t.var} onChange={(e) => set(i, { var: e.target.value, lag: undefined })} title="Variable">
+                {spec.vars.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.symbol} · {v.label.toLowerCase()}
+                  </option>
+                ))}
+              </select>
+            ) : null}
+            <Tex tex={varTex(spec, t.var, t.lag)} />
+            {allowLag && os && (
+              <select
+                value={t.lag ?? 0}
+                onChange={(e) => set(i, { lag: Number(e.target.value) || undefined })}
+                title="Período"
+              >
+                <option value={0}>{os.index}</option>
+                <option value={-1}>{os.index}−1</option>
+              </select>
+            )}
+            {terms.length > 1 && (
+              <button className="icon" title="Quitar término" onClick={() => onChange(terms.filter((_, j) => j !== i))}>
+                ×
+              </button>
+            )}
+          </div>
+        );
+      })}
+      <button className="link small" onClick={() => onChange([...terms, term(spec.vars[0].id)])}>
+        + término
+      </button>
+    </div>
+  );
 }
 
 /** Todos los subconjuntos de una lista, del más chico al más grande. */
@@ -52,20 +127,9 @@ export function IndexedModeler({ level, draft, onChange, onSolve, solving, revea
       ...draft,
       constraints: [
         ...draft.constraints,
-        { key: newKey(), name: '', forall: [], coef: null, var: spec.vars[0].id, op: '<=', rhs: { kind: 'value', value: '' } },
+        { key: newKey(), name: '', forall: [], terms: [term(spec.vars[0].id)], op: '<=', rhs: { kind: 'value', value: '' } },
       ],
     });
-
-  const coefSelect = (value: string | null, set: (v: string | null) => void) => (
-    <select value={value ?? ''} onChange={(e) => set(e.target.value || null)}>
-      <option value="">1</option>
-      {spec.params.map((p) => (
-        <option key={p.id} value={p.id}>
-          {p.symbol} · {p.name.toLowerCase()}
-        </option>
-      ))}
-    </select>
-  );
 
   return (
     <div className="two-col">
@@ -124,16 +188,22 @@ export function IndexedModeler({ level, draft, onChange, onSolve, solving, revea
             <option value="min">min</option>
             <option value="max">max</option>
           </select>
-          <Tex tex={getVar(spec, draft.objective.var).over.map((s) => `\\sum_{${getSet(spec, s).index}}`).join(' ')} />
-          {coefSelect(draft.objective.coef, (coef) => onChange({ ...draft, objective: { ...draft.objective, coef } }))}
-          <Tex tex={varTex(spec, draft.objective.var)} />
         </div>
+        <TermsEditor
+          spec={spec}
+          terms={draft.objective.terms}
+          forall={[]}
+          allowLag={false}
+          onChange={(terms) => onChange({ ...draft, objective: { terms } })}
+        />
 
         <h4>Restricciones</h4>
         {draft.constraints.length === 0 && <p className="muted">Todavía no agregaste restricciones.</p>}
         {draft.constraints.map((c) => {
-          const fam = getVar(spec, c.var);
-          const sumOver = fam.over.filter((s) => !c.forall.includes(s));
+          // "Para cada" puede usar cualquier conjunto del que dependan las variables de la restricción.
+          const indexable = [...new Set(c.terms.flatMap((t) => getVar(spec, t.var).over))];
+          const forallOptions = subsets(indexable);
+          if (!forallOptions.some((o) => o.join(',') === c.forall.join(','))) forallOptions.push(c.forall);
           const errs = errors[c.key];
           return (
             <div key={c.key} className={`icard ${errs ? 'bad' : ''}`}>
@@ -149,7 +219,7 @@ export function IndexedModeler({ level, draft, onChange, onSolve, solving, revea
                   onChange={(e) => setRow(c.key, { forall: e.target.value ? e.target.value.split(',') : [] })}
                   title="Para cada"
                 >
-                  {subsets(fam.over).map((sub) => (
+                  {forallOptions.map((sub) => (
                     <option key={sub.join(',')} value={sub.join(',')}>
                       {sub.length === 0
                         ? 'una sola vez'
@@ -165,10 +235,14 @@ export function IndexedModeler({ level, draft, onChange, onSolve, solving, revea
                   ×
                 </button>
               </div>
+              <TermsEditor
+                spec={spec}
+                terms={c.terms}
+                forall={c.forall}
+                allowLag
+                onChange={(terms) => setRow(c.key, { terms })}
+              />
               <div className="irow">
-                {sumOver.length > 0 && <Tex tex={sumOver.map((s) => `\\sum_{${getSet(spec, s).index}}`).join(' ')} />}
-                {coefSelect(c.coef, (coef) => setRow(c.key, { coef }))}
-                <Tex tex={varTex(spec, c.var)} />
                 <select className="op" value={c.op} onChange={(e) => setRow(c.key, { op: e.target.value as Op })}>
                   <option value="<=">≤</option>
                   <option value=">=">≥</option>

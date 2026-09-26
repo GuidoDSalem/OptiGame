@@ -5,7 +5,7 @@
  * capacidad de tamaño y de horas. La técnica, el modelo, la teoría y la lógica del mundo son
  * siempre los mismos; cada variante (escuela, hospital…) aporta datos, vocabulario e historia.
  */
-import { compileIndexed, type IndexedDraft, type IndexedSpec } from '../../engine/indexed';
+import { compileIndexed, term, type IndexedDraft, type IndexedSpec } from '../../engine/indexed';
 import type { Check, ContentBlock, Level } from '../types';
 import { crearEscenaAsignacion, type EstiloContenedor } from './Scene';
 
@@ -121,12 +121,12 @@ export function crearNivelAsignacion(v: VarianteAsignacion): Level {
 
   const reference: IndexedDraft = {
     sense: 'min',
-    objective: { coef: 'w', var: 'y' },
+    objective: { terms: [term('y', 'w')] },
     varTypes: { y: 'bin' },
     constraints: [
-      { key: 'una', name: `${cap(V.bin.unoSolo)} por ${V.item.singular}`, forall: [I], coef: null, var: 'y', op: '=', rhs: { kind: 'value', value: '1' } },
-      { key: 'horas', name: `Horas (${V.bin.singular})`, forall: [B], coef: 'h', var: 'y', op: '<=', rhs: { kind: 'param', param: 'H' } },
-      { key: 'tamano', name: cap(V.size.bin), forall: [I, B], coef: 'n', var: 'y', op: '<=', rhs: { kind: 'param', param: 'K' } },
+      { key: 'una', name: `${cap(V.bin.unoSolo)} por ${V.item.singular}`, forall: [I], terms: [term('y')], op: '=', rhs: { kind: 'value', value: '1' } },
+      { key: 'horas', name: `Horas (${V.bin.singular})`, forall: [B], terms: [term('y', 'h')], op: '<=', rhs: { kind: 'param', param: 'H' } },
+      { key: 'tamano', name: cap(V.size.bin), forall: [I, B], terms: [term('y', 'n')], op: '<=', rhs: { kind: 'param', param: 'K' } },
     ],
   };
 
@@ -248,7 +248,7 @@ export function crearNivelAsignacion(v: VarianteAsignacion): Level {
     indexed: {
       spec,
       reference,
-      starter: { sense: 'max', objective: { coef: null, var: 'y' }, constraints: [] },
+      starter: { sense: 'max', objective: { terms: [term('y')] }, constraints: [] },
       matrix: { var: 'y', rows: I, cols: B, binary: true, totals: false },
     },
     briefing: historia,

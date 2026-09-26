@@ -35,7 +35,8 @@ src/
     diagnose.ts           Traduce el resultado del solver a feedback pedagógico
     score.ts              Estrellas y distancia al óptimo
     geometry.ts           Región factible 2D (método gráfico)
-    indexed.ts            Modelos con índices (conjuntos, parámetros, familias) → expansión a LPModel
+    indexed.ts            Modelos con índices: conjuntos (ordenados o no), parámetros, familias de
+                          variables y restricciones como sumas de términos (con desfase t−1) → LPModel
   levels/
     types.ts              Contrato `Level`: historia, teoría, variables, modelo de referencia, mundo, escena
     index.ts              Registro de niveles
@@ -51,6 +52,10 @@ src/
       escuela.ts          Variante: cursos → aulas
       hospital.ts         Variante: cirugías → quirófanos (compatibilidad por nivel de complejidad)
       datacenter.ts       Variante: trabajos nocturnos → servidores (RAM y ventana horaria)
+    planificacion/        Nivel 5 como PLANTILLA: multi-período con costos fijos (lot sizing)
+      template.ts         crearNivelPlanificacion(variante): balance de stock, activación big-M
+      Scene.ts            Escena de línea de tiempo (envío / stock / demanda por período)
+      minera.ts           Variante: mina → tren → puerto → barcos
   config.ts               Funcionalidades en prueba (p. ej. botón "Ver modelo correcto")
   scene/IsoCanvas.tsx     Lienzo Three.js isométrico reutilizable + primitivas (box, cylinder, pipe)
   scene/thumbnail.ts      Render único de una escena a imagen (miniaturas del menú)

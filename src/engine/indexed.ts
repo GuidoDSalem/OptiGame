@@ -1,6 +1,10 @@
 /**
  * Modelos con índices (estilo AMPL/Pyomo): conjuntos, parámetros indexados y familias de
  * variables y restricciones. Se "expanden" a un LPModel plano que entiende el solver.
+ *
+ * Una restricción es una suma de **términos** (signo · coeficiente · variable), cada uno con
+ * sus propias sumatorias implícitas: los índices de la variable que no están en el "para cada"
+ * se suman. Un término puede tener **desfase** en un conjunto ordenado (p. ej. s_{t-1}).
  */
 import { lpName, type Constraint, type LPModel, type Op, type Sense } from './model';
 
@@ -9,6 +13,8 @@ export interface IndexSet {
   name: string; // "Plantas"
   index: string; // "i"
   items: { id: string; label: string; short: string }[];
+  /** Conjunto ordenado (períodos): admite desfases como t−1. */
+  ordered?: boolean;
 }
 
 export interface Param {
@@ -45,21 +51,32 @@ export interface IndexedSpec {
 
 export type Rhs = { kind: 'param'; param: string } | { kind: 'value'; value: string };
 
+/** Un término: signo · coeficiente · variable (con desfase opcional en el conjunto ordenado). */
+export interface Term {
+  sign: 1 | -1;
+  /** Parámetro que multiplica a la variable (null = 1). */
+  coef: string | null;
+  var: string;
+  /** Desfase en el conjunto ordenado de la variable: −1 = período anterior. */
+  lag?: number;
+}
+
+export const term = (v: string, coef: string | null = null, sign: 1 | -1 = 1, lag?: number): Term =>
+  lag ? { sign, coef, var: v, lag } : { sign, coef, var: v };
+
 export interface IndexedConstraint {
   key: string;
   name: string;
   /** Conjuntos sobre los que se repite la restricción ("para cada"). */
   forall: string[];
-  /** Parámetro que multiplica a la variable dentro de la suma (null = 1). */
-  coef: string | null;
-  var: string;
+  terms: Term[];
   op: Op;
   rhs: Rhs;
 }
 
 export interface IndexedDraft {
   sense: Sense;
-  objective: { coef: string | null; var: string };
+  objective: { terms: Term[] };
   constraints: IndexedConstraint[];
   /** Tipo de cada familia de variables (por defecto continua). */
   varTypes?: Record<string, VarType>;
@@ -72,6 +89,10 @@ export type Assignment = Record<string, string>; // setId → itemId
 export const getSet = (spec: IndexedSpec, id: string) => spec.sets.find((s) => s.id === id)!;
 export const getParam = (spec: IndexedSpec, id: string) => spec.params.find((p) => p.id === id)!;
 export const getVar = (spec: IndexedSpec, id: string) => spec.vars.find((v) => v.id === id)!;
+
+/** Conjunto ordenado de una familia de variables (si tiene). */
+export const orderedSetOf = (spec: IndexedSpec, fam: VarFamily) =>
+  fam.over.map((s) => getSet(spec, s)).find((s) => s.ordered);
 
 /** Todas las asignaciones posibles de ítems para una lista de conjuntos (producto cartesiano). */
 export function assignments(spec: IndexedSpec, setIds: string[]): Assignment[] {
@@ -101,16 +122,44 @@ export function flatVars(spec: IndexedSpec) {
   );
 }
 
+/**
+ * Aplica el desfase de un término a una asignación. Devuelve null si cae fuera del horizonte
+ * (p. ej. s_{t-1} en el primer período): ese término vale 0 (stock inicial nulo).
+ */
+function shift(spec: IndexedSpec, t: Term, a: Assignment): Assignment | null {
+  if (!t.lag) return a;
+  const set = orderedSetOf(spec, getVar(spec, t.var));
+  if (!set) return a;
+  const pos = set.items.findIndex((it) => it.id === a[set.id]) + t.lag;
+  if (pos < 0 || pos >= set.items.length) return null;
+  return { ...a, [set.id]: set.items[pos].id };
+}
+
 const isSubset = (a: string[], b: string[]) => a.every((x) => b.includes(x));
 
 /** Errores de coherencia de índices de una familia de restricciones (vacío si está bien). */
 export function validateConstraint(spec: IndexedSpec, c: IndexedConstraint): string[] {
   const errs: string[] = [];
-  const fam = getVar(spec, c.var);
   const idx = (ids: string[]) => ids.map((s) => getSet(spec, s).index).join(', ');
-  if (!isSubset(c.forall, fam.over)) errs.push(`"para cada" usa índices que ${fam.symbol} no tiene.`);
-  if (c.coef && !isSubset(getParam(spec, c.coef).over, fam.over))
-    errs.push(`El coeficiente ${getParam(spec, c.coef).symbol} tiene índices que ${fam.symbol} no tiene.`);
+  if (c.terms.length === 0) errs.push('La restricción no tiene términos.');
+
+  const used = new Set(c.terms.flatMap((t) => getVar(spec, t.var).over));
+  const unused = c.forall.filter((s) => !used.has(s));
+  if (unused.length)
+    errs.push(`Se repite "para cada" ${idx(unused)}, pero ninguna variable depende de ${idx(unused)}.`);
+
+  for (const t of c.terms) {
+    const fam = getVar(spec, t.var);
+    if (t.coef && !isSubset(getParam(spec, t.coef).over, fam.over))
+      errs.push(`El coeficiente ${getParam(spec, t.coef).symbol} tiene índices que ${fam.symbol} no tiene.`);
+    if (t.lag) {
+      const os = orderedSetOf(spec, fam);
+      if (!os) errs.push(`${fam.symbol} no depende del tiempo: no se le puede aplicar un desfase.`);
+      else if (!c.forall.includes(os.id))
+        errs.push(`Para usar ${fam.symbol} con desfase, la restricción tiene que repetirse "para cada" ${os.index}.`);
+    }
+  }
+
   if (c.rhs.kind === 'param') {
     const p = getParam(spec, c.rhs.param);
     if (!isSubset(p.over, c.forall))
@@ -129,6 +178,19 @@ export interface CompileResult {
   errors: Record<string, string[]>;
 }
 
+/** Suma las contribuciones de un término, dado el "para cada" fijado en `a`. */
+function addTerm(spec: IndexedSpec, t: Term, forall: string[], a: Assignment, into: Record<string, number>) {
+  const fam = getVar(spec, t.var);
+  const sumOver = fam.over.filter((s) => !forall.includes(s));
+  for (const b of assignments(spec, sumOver)) {
+    const full = shift(spec, t, { ...a, ...b });
+    if (!full) continue;
+    const id = varId(fam, full);
+    const k = t.sign * (t.coef ? paramValue(spec, t.coef, full) : 1);
+    into[id] = (into[id] ?? 0) + k;
+  }
+}
+
 /** Expande el modelo indexado a un modelo plano. */
 export function compileIndexed(spec: IndexedSpec, d: IndexedDraft): CompileResult {
   const variables = flatVars(spec).map(({ id, fam }) => {
@@ -137,10 +199,7 @@ export function compileIndexed(spec: IndexedSpec, d: IndexedDraft): CompileResul
   });
 
   const objective: Record<string, number> = {};
-  const ofam = getVar(spec, d.objective.var);
-  for (const a of assignments(spec, ofam.over)) {
-    objective[varId(ofam, a)] = d.objective.coef ? paramValue(spec, d.objective.coef, a) : 1;
-  }
+  for (const t of d.objective.terms) addTerm(spec, { ...t, lag: undefined }, [], {}, objective);
 
   const errors: Record<string, string[]> = {};
   const constraints: Constraint[] = [];
@@ -150,14 +209,9 @@ export function compileIndexed(spec: IndexedSpec, d: IndexedDraft): CompileResul
       errors[c.key] = errs;
       return;
     }
-    const fam = getVar(spec, c.var);
-    const sumOver = fam.over.filter((s) => !c.forall.includes(s));
     for (const a of assignments(spec, c.forall)) {
       const coefs: Record<string, number> = {};
-      for (const b of assignments(spec, sumOver)) {
-        const full = { ...a, ...b };
-        coefs[varId(fam, full)] = c.coef ? paramValue(spec, c.coef, full) : 1;
-      }
+      for (const t of c.terms) addTerm(spec, t, c.forall, a, coefs);
       const rhs =
         c.rhs.kind === 'param' ? paramValue(spec, c.rhs.param, a) : Number(c.rhs.value.replace(',', '.'));
       const where = c.forall.map((s) => getSet(spec, s).items.find((it) => it.id === a[s])!.label).join(', ');
@@ -176,17 +230,23 @@ export function compileIndexed(spec: IndexedSpec, d: IndexedDraft): CompileResul
 
 /* ---------- Notación matemática ---------- */
 
-const sub = (spec: IndexedSpec, over: string[]) =>
-  over.length ? `_{${over.map((s) => getSet(spec, s).index).join('')}}` : '';
+const sub = (spec: IndexedSpec, over: string[], lag?: number) => {
+  if (!over.length) return '';
+  const parts = over.map((s) => {
+    const set = getSet(spec, s);
+    return lag && set.ordered ? `${set.index}${lag < 0 ? '' : '+'}${lag}` : set.index;
+  });
+  return `_{${parts.join(lag ? ',' : '')}}`;
+};
 
 export function paramTex(spec: IndexedSpec, id: string): string {
   const p = getParam(spec, id);
   return `${p.symbol}${sub(spec, p.over)}`;
 }
 
-export function varTex(spec: IndexedSpec, id: string): string {
+export function varTex(spec: IndexedSpec, id: string, lag?: number): string {
   const v = getVar(spec, id);
-  return `${v.symbol}${sub(spec, v.over)}`;
+  return `${v.symbol}${sub(spec, v.over, lag)}`;
 }
 
 const sums = (spec: IndexedSpec, over: string[]) =>
@@ -197,19 +257,29 @@ export const forallTex = (spec: IndexedSpec, over: string[]) =>
 
 const OPTEX: Record<Op, string> = { '<=': '\\leq', '>=': '\\geq', '=': '=' };
 
+/** Suma de términos en notación matemática (las sumatorias salen del "para cada"). */
+export function termsTex(spec: IndexedSpec, terms: Term[], forall: string[]): string {
+  if (!terms.length) return '0';
+  return terms
+    .map((t, i) => {
+      const fam = getVar(spec, t.var);
+      const sumOver = fam.over.filter((s) => !forall.includes(s));
+      const coef = t.coef ? paramTex(spec, t.coef) + '\\,' : '';
+      const body = `${sums(spec, sumOver)} ${coef}${varTex(spec, fam.id, t.lag)}`.trim();
+      const sign = t.sign < 0 ? '-' : i > 0 ? '+' : '';
+      return `${sign} ${body}`;
+    })
+    .join(' ');
+}
+
 export function objectiveTex(spec: IndexedSpec, d: IndexedDraft): string {
-  const fam = getVar(spec, d.objective.var);
-  const coef = d.objective.coef ? paramTex(spec, d.objective.coef) + '\\,' : '';
-  return `\\${d.sense} \\; ${sums(spec, fam.over)} ${coef}${varTex(spec, fam.id)}`;
+  return `\\${d.sense} \\; ${termsTex(spec, d.objective.terms, [])}`;
 }
 
 /** Lado izquierdo y derecho de una familia de restricciones, sin el "para cada". */
 export function constraintTex(spec: IndexedSpec, c: IndexedConstraint): string {
-  const fam = getVar(spec, c.var);
-  const sumOver = fam.over.filter((s) => !c.forall.includes(s));
-  const coef = c.coef ? paramTex(spec, c.coef) + '\\,' : '';
   const rhs = c.rhs.kind === 'param' ? paramTex(spec, c.rhs.param) : c.rhs.value || '?';
-  return `${sums(spec, sumOver)} ${coef}${varTex(spec, fam.id)} ${OPTEX[c.op]} ${rhs}`;
+  return `${termsTex(spec, c.terms, c.forall)} ${OPTEX[c.op]} ${rhs}`;
 }
 
 /** Dominio de una familia de variables en notación matemática. */

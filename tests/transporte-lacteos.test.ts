@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { diagnose } from '../src/engine/diagnose';
-import { compileIndexed, validateConstraint, type IndexedDraft } from '../src/engine/indexed';
+import { compileIndexed, term, validateConstraint, type IndexedDraft } from '../src/engine/indexed';
 import { solve } from '../src/engine/solver';
 import { transporteLacteos as level } from '../src/levels/transporte-lacteos';
 
@@ -33,7 +33,7 @@ describe('Motor de modelos con índices', () => {
     const { model } = compileIndexed(
       spec,
       withConstraints(() => [
-        { key: 't', name: 'Total', forall: [], coef: null, var: 'x', op: '<=', rhs: { kind: 'value', value: '50' } },
+        { key: 't', name: 'Total', forall: [], terms: [term('x')], op: '<=', rhs: { kind: 'value', value: '50' } },
       ]),
     );
     expect(model.constraints).toHaveLength(1);

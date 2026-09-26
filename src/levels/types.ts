@@ -75,6 +75,11 @@ export interface Level {
   evaluate(values: Record<string, number>): Evaluation;
   /** Pistas progresivas para el modelador. */
   hints: string[];
+  /**
+   * En el intento manual el jugador puede decidir sólo algunas variables; esta función completa
+   * el resto (p. ej. el stock que resulta de lo enviado) antes de evaluar y dibujar.
+   */
+  manualDerive?(values: Record<string, number>): Record<string, number>;
   /** Si el nivel tiene 2 variables, se puede mostrar el método gráfico. */
   plot?: { x: string; y: string; xmax: number; ymax: number; /** Máximo del slider de la recta de isocosto. */ isoMax: number };
   scene: SceneSpec;
@@ -90,7 +95,7 @@ export interface IndexedLevel {
   reference: IndexedDraft;
   starter: IndexedDraft;
   /** Familia de variables de 2 índices que se muestra como matriz (intento manual y resultado). */
-  matrix: {
+  matrix?: {
     var: string;
     rows: string;
     cols: string;
@@ -100,6 +105,17 @@ export interface IndexedLevel {
     binary?: boolean;
     /** Mostrar totales por fila y columna (por defecto sí). */
     totals?: boolean;
+  };
+  /**
+   * Niveles multi-período: tabla con una columna por período y una fila por familia de
+   * variables (y parámetros de contexto). Reemplaza a la matriz si está definida.
+   */
+  periodTable?: {
+    set: string;
+    /** Familia que el jugador edita en el intento manual. */
+    manualVar: string;
+    /** Parámetros indexados por período que se muestran como contexto (demanda, capacidad…). */
+    params?: string[];
   };
 }
 

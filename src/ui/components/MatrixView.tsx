@@ -15,7 +15,8 @@ const fmtDefault = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2
 
 /** Variables de dos índices como matriz: filas = un conjunto, columnas = el otro. */
 export function MatrixView({ indexed, values, onChange, totals: totalsProp, format = fmtDefault }: Props) {
-  const { spec, matrix } = indexed;
+  const { spec } = indexed;
+  const matrix = indexed.matrix!;
   const totals = totalsProp ?? matrix.totals ?? true;
   const fam = getVar(spec, matrix.var);
   const rows = getSet(spec, matrix.rows);

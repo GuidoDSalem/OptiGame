@@ -6,9 +6,8 @@ import { LevelView } from './ui/LevelView';
 
 /** Niveles planificados (todavía no implementados), para mostrar el recorrido. */
 const UPCOMING = [
-  { client: 'Minera y puerto', technique: 'Scheduling · MIP' },
   { client: 'Reparto urbano', technique: 'Ruteo (TSP/VRP) · heurísticas' },
-  { client: 'Ciudad en crecimiento', technique: 'Optimización multi-período' },
+  { client: 'Ciudad en crecimiento', technique: 'Multi-objetivo · decisiones encadenadas' },
 ];
 
 /** Agrupa las versiones de un mismo nivel (mismo número), respetando el orden del registro. */

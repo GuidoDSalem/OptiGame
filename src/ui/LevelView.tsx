@@ -22,10 +22,14 @@ interface Solved {
 
 export function LevelView({ level, onExit }: { level: Level; onExit(): void }) {
   const [phase, setPhase] = useState(0);
-  const [manual, setManual] = useState<Record<string, number>>(() =>
+  const derive = (v: Record<string, number>) => (level.manualDerive ? level.manualDerive(v) : v);
+  const [manual, setManualRaw] = useState<Record<string, number>>(() =>
+    derive(
     // En niveles con índices se arranca de cero (la tabla vacía); si no, a mitad de cada slider.
-    Object.fromEntries(level.variables.map((v) => [v.id, level.indexed ? 0 : Math.round((v.min + v.max) / 2)])),
+      Object.fromEntries(level.variables.map((v) => [v.id, level.indexed ? 0 : Math.round((v.min + v.max) / 2)])),
+    ),
   );
+  const setManual = (v: Record<string, number>) => setManualRaw(derive(v));
   const [manualBest, setManualBest] = useState<number | undefined>();
   const [draft, setDraft] = useState<Draft>(() => draftFromModel(level.starterModel));
   const [idraft, setIdraft] = useState<IndexedDraft | null>(() => level.indexed?.starter ?? null);
