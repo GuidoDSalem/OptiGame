@@ -1,14 +1,18 @@
+import { Fragment, useState } from 'react';
 import { FEATURES } from '../../config';
 import { LevelScene } from '../../scene/LevelScene';
 import type { Diagnosis } from '../../engine/diagnose';
 import type { LPModel } from '../../engine/model';
 import { stars } from '../../engine/score';
+import { bumpRhs, improves, type BumpResult } from '../../engine/sensitivity';
 import type { SolveResult } from '../../engine/solver';
 import type { Level } from '../../levels/types';
 import { Checks, Stars } from '../components/Checks';
 import { FeasiblePlot } from '../components/FeasiblePlot';
+import { InfoTitle } from '../components/InfoButton';
 import { MatrixView } from '../components/MatrixView';
 import { Rich } from '../components/Rich';
+import { ReducedCostHelp, ShadowPriceHelp } from '../components/ShadowPriceHelp';
 import { Tex } from '../components/Tex';
 
 interface Props {
@@ -33,6 +37,15 @@ export function Results({ level, model, result, diagnosis, optimum, manualBest, 
   const isMin = level.objective.sense === 'min';
   // Cuánto mejoró el solver respecto del mejor intento manual (positivo = mejor).
   const improvement = ev && manualBest !== undefined ? (isMin ? manualBest - ev.objective : ev.objective - manualBest) : 0;
+
+  // Resultados del botón "+1" por restricción (índice → resultado o 'loading').
+  const [bumps, setBumps] = useState<Record<number, BumpResult | 'loading'>>({});
+  const tryBump = async (i: number) => {
+    if (result.objective === undefined) return;
+    setBumps((b) => ({ ...b, [i]: 'loading' }));
+    const r = await bumpRhs(model, i, result.objective);
+    setBumps((b) => ({ ...b, [i]: r }));
+  };
 
   return (
     <div className="two-col">
@@ -100,7 +113,9 @@ export function Results({ level, model, result, diagnosis, optimum, manualBest, 
 
             {result.rows.length > 0 && (
               <>
-                <h4>Análisis de sensibilidad</h4>
+                <InfoTitle title="Análisis de sensibilidad">
+                  <ShadowPriceHelp level={level} model={model} result={result} />
+                </InfoTitle>
                 <p className="muted">
                   Una restricción <strong>activa</strong> es la que "aprieta" (holgura 0). Su <strong>precio sombra</strong>{' '}
                   indica cuánto cambia el objetivo si su lado derecho sube una unidad.
@@ -113,14 +128,17 @@ export function Results({ level, model, result, diagnosis, optimum, manualBest, 
                       <th className="r">Límite</th>
                       <th className="r">Holgura</th>
                       <th className="r">Precio sombra</th>
+                      <th />
                     </tr>
                   </thead>
                   <tbody>
                     {result.rows.map((r, i) => {
                       const c = model.constraints[i];
                       const slack = Math.abs(c.rhs - r.activity);
+                      const b = bumps[i];
                       return (
-                        <tr key={r.id} className={slack < 1e-6 ? 'active' : ''}>
+                        <Fragment key={r.id}>
+                        <tr className={slack < 1e-6 ? 'active' : ''}>
                           <td>{r.name}</td>
                           <td className="r">{money(r.activity)}</td>
                           <td className="r">
@@ -128,7 +146,38 @@ export function Results({ level, model, result, diagnosis, optimum, manualBest, 
                           </td>
                           <td className="r">{slack < 1e-6 ? 'activa' : money(slack)}</td>
                           <td className="r">{r.dual === undefined ? '—' : money(r.dual)}</td>
+                          <td className="r">
+                            <button className="mini" title="Resolver con este límite +1" onClick={() => tryBump(i)}>
+                              +1
+                            </button>
+                          </td>
                         </tr>
+                        {b && (
+                          <tr className="bump">
+                            <td colSpan={6}>
+                              {b === 'loading' ? (
+                                'Resolviendo…'
+                              ) : b.delta === undefined ? (
+                                <>Con {c.rhs + 1} el modelo queda {b.status === 'infeasible' ? 'infactible' : 'sin solución'}.</>
+                              ) : (
+                                <>
+                                  Con límite {money(c.rhs + 1)}: {level.objective.unit}
+                                  {money(b.objective!)} (cambio real{' '}
+                                  <strong className={b.delta === 0 ? '' : improves(model.sense, b.delta) ? 'good' : 'bad'}>
+                                    {b.delta > 0 ? '+' : ''}
+                                    {money(b.delta)}
+                                  </strong>
+                                  ).{' '}
+                                  {r.dual !== undefined &&
+                                    (Math.abs(b.delta - r.dual) < 1e-4
+                                      ? 'Coincide con el precio sombra.'
+                                      : 'No coincide con el precio sombra: el cambio sale de su rango de validez.')}
+                                </>
+                              )}
+                            </td>
+                          </tr>
+                        )}
+                        </Fragment>
                       );
                     })}
                   </tbody>
@@ -138,9 +187,11 @@ export function Results({ level, model, result, diagnosis, optimum, manualBest, 
 
             {Object.keys(result.reducedCosts).length > 0 && level.indexed && (
               <>
+                <InfoTitle title="Costos reducidos">
+                  <ReducedCostHelp level={level} />
+                </InfoTitle>
                 <p className="muted">
-                  <strong>Costos reducidos</strong> de cada ruta: cuánto aumentaría el costo por cada camión que
-                  mandes por una ruta que el solver dejó sin usar.
+                  Cuánto aumentaría el costo por cada camión que mandes por una ruta que el solver dejó sin usar.
                 </p>
                 <MatrixView indexed={level.indexed} values={result.reducedCosts} totals={false} format={money} />
               </>
@@ -148,10 +199,9 @@ export function Results({ level, model, result, diagnosis, optimum, manualBest, 
 
             {Object.keys(result.reducedCosts).length > 0 && !level.indexed && (
               <>
-                <p className="muted">
-                  El <strong>costo reducido</strong> de una variable que quedó en 0 indica cuánto empeoraría el
-                  objetivo por cada unidad que la fuerces a usar.
-                </p>
+                <InfoTitle title="Costos reducidos">
+                  <ReducedCostHelp level={level} />
+                </InfoTitle>
                 <table className="data">
                   <thead>
                     <tr>
