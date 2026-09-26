@@ -3,10 +3,11 @@ import { campanaMarketing } from './campana-marketing';
 import { nivelesAsignacion } from './asignacion';
 import { nivelesBenders } from './benders';
 import { nivelesCiudad } from './ciudad';
+import { nivelesColumnas } from './columnas';
 import { nivelesPlanificacion } from './planificacion';
 import { nivelesRuteo } from './ruteo';
 import { plantaAgua } from './planta-agua';
 import { transporteLacteos } from './transporte-lacteos';
 
 /** Registro de niveles en orden de juego. Para agregar uno: crear su carpeta y sumarlo acá. */
-export const LEVELS: Level[] = [plantaAgua, campanaMarketing, transporteLacteos, ...nivelesAsignacion, ...nivelesPlanificacion, ...nivelesRuteo, ...nivelesCiudad, ...nivelesBenders];
+export const LEVELS: Level[] = [plantaAgua, campanaMarketing, transporteLacteos, ...nivelesAsignacion, ...nivelesPlanificacion, ...nivelesRuteo, ...nivelesCiudad, ...nivelesColumnas, ...nivelesBenders];

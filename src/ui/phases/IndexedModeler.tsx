@@ -3,6 +3,7 @@ import {
   compileIndexed,
   constraintTex,
   forallTex,
+  getParam,
   getSet,
   getVar,
   objectiveTex,
@@ -227,7 +228,10 @@ export function IndexedModeler({ level, draft, onChange, onSolve, solving, revea
         {draft.constraints.length === 0 && <p className="muted">Todavía no agregaste restricciones.</p>}
         {draft.constraints.map((c) => {
           // "Para cada" puede usar cualquier conjunto del que dependan las variables de la restricción.
-          const indexable = [...new Set(c.terms.flatMap((t) => getVar(spec, t.var).over))];
+          // Se puede repetir sobre los índices de las variables y de los coeficientes (a_{ip}·x_p para cada i).
+          const indexable = [
+            ...new Set(c.terms.flatMap((t) => [...getVar(spec, t.var).over, ...(t.coef ? getParam(spec, t.coef).over : [])])),
+          ];
           const forallOptions = subsets(indexable);
           if (!forallOptions.some((o) => o.join(',') === c.forall.join(','))) forallOptions.push(c.forall);
           const errs = errors[c.key];

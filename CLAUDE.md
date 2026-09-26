@@ -12,6 +12,7 @@ Juego educativo de optimización (Vite + React + TypeScript + Three.js + HiGHS-w
 - `Level.resultsExtra` agrega un panel al resultado (p. ej. la frontera de Pareto del nivel 7).
 - `Level.lazyCuts` permite cortes a demanda (el jugador los agrega desde el resultado); `Level.manualComponent` reemplaza los controles del intento manual.
 - Los niveles de "Técnicas avanzadas" llevan `seccion: 'avanzada'` y `codigo` (A1…A5); el menú los muestra aparte.
+- Un coeficiente puede tener índices del "para cada" que la variable no tiene (`a_{ip}·x_p` para cada `i`, ver A2).
 - Niveles con varias versiones usan una plantilla (ver `src/levels/asignacion/`); cada versión nueva tiene que pasar los tests pedagógicos genéricos.
 - Las escenas son `SceneSpec` (`create` + `viewSize`) para poder renderizarlas también como miniatura.
 - Estilo visual minimalista: paleta en `src/styles.css` (`:root`) y `PALETTE` en `src/scene/IsoCanvas.tsx`.

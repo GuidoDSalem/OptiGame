@@ -38,6 +38,7 @@ src/
     score.ts              Estrellas y distancia al óptimo
     geometry.ts           Región factible 2D (método gráfico)
     benders.ts            Descomposición de Benders: maestro, subproblema, cortes por dualidad, cotas
+    columnas.ts           Generación de columnas (corte de bobinas): maestro, pricing-mochila, cota de Farley
     pareto.ts             Dos objetivos: frontera exacta por ε-restricción y puntos soportados
     routing.ts            Ruteo: circuitos, heurísticas, cortes de subtour, formulación MTZ
     indexed.ts            Modelos con índices: conjuntos (ordenados o no), parámetros, familias de
@@ -73,6 +74,12 @@ src/
       ParetoPanel.tsx     Frontera de Pareto (ε-restricción) y puntos que la suma ponderada no ve
       Scene.ts            Lotes con edificios según los proyectos elegidos
       nueva-pampa.ts      Variante: intendencia con compromiso ambiental
+    columnas/             Avanzado A2 como PLANTILLA: corte de bobinas por generación de columnas
+      template.ts         crearNivelColumnas(variante): modelo de patrones, teoría, mundo
+      ColumnasPanel.tsx   Intento manual: el jugador hace de pricing (precios sombra, patrones, cotas)
+      ColumnasAuto.tsx    Resultado: patrones elegidos, generación automática, redondeo vs. entero
+      Scene.ts            Bobinas cortadas por patrón y pilas de piezas por pedido
+      papelera.ts         Variante: papelera que corta bobinas madre de 200 cm
     benders/              Avanzado A3 como PLANTILLA: localización de depósitos por Benders
       template.ts         crearNivelBenders(variante): modelo completo, teoría, mundo
       BendersPanel.tsx    Intento manual: el jugador hace de maestro (rondas, cortes, cotas)

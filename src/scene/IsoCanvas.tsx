@@ -89,6 +89,9 @@ export function IsoCanvas<P>({ create, params, viewSize = 9, height = 320 }: Pro
       renderer.render(scene, camera);
       (handle.labels ?? []).forEach((l, i) => {
         v.copy(l.position).project(camera);
+        // Las escenas pueden cambiar el texto de una etiqueta en `update` ("" la oculta).
+        if (labelEls[i].textContent !== l.text) labelEls[i].textContent = l.text;
+        labelEls[i].style.display = l.text ? '' : 'none';
         labelEls[i].style.transform = `translate(-50%, -50%) translate(${((v.x + 1) / 2) * host.clientWidth}px, ${((1 - v.y) / 2) * host.clientHeight}px)`;
       });
       raf = requestAnimationFrame(loop);

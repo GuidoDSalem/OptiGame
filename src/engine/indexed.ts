@@ -175,15 +175,16 @@ export function validateConstraint(spec: IndexedSpec, c: IndexedConstraint): str
   const idx = (ids: string[]) => ids.map((s) => getSet(spec, s).index).join(', ');
   if (c.terms.length === 0) errs.push('La restricción no tiene términos.');
 
-  const used = new Set(c.terms.flatMap((t) => getVar(spec, t.var).over));
+  // Un "para cada" tiene sentido si lo usa alguna variable o algún coeficiente (p. ej. a_{ip}·x_p para cada i).
+  const used = new Set(c.terms.flatMap((t) => [...getVar(spec, t.var).over, ...(t.coef ? getParam(spec, t.coef).over : [])]));
   const unused = c.forall.filter((s) => !used.has(s));
   if (unused.length)
     errs.push(`Se repite "para cada" ${idx(unused)}, pero ninguna variable depende de ${idx(unused)}.`);
 
   for (const t of c.terms) {
     const fam = getVar(spec, t.var);
-    if (t.coef && !isSubset(getParam(spec, t.coef).over, fam.over))
-      errs.push(`El coeficiente ${getParam(spec, t.coef).symbol} tiene índices que ${fam.symbol} no tiene.`);
+    if (t.coef && !isSubset(getParam(spec, t.coef).over, [...fam.over, ...c.forall]))
+      errs.push(`El coeficiente ${getParam(spec, t.coef).symbol} tiene índices que ni ${fam.symbol} ni el "para cada" tienen.`);
     for (const s of Object.keys(t.at ?? {})) {
       if (!fam.over.includes(s)) errs.push(`${fam.symbol} no tiene el índice ${getSet(spec, s).index}.`);
       else if (c.forall.includes(s))
