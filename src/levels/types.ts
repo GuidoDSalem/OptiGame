@@ -71,6 +71,10 @@ export interface Level {
    * situaciones, p. ej. "Escuela" y "Hospital". Los niveles con el mismo número se agrupan.
    */
   variant?: string;
+  /** Sección del menú: los niveles avanzados (técnicas de gran escala) van aparte. */
+  seccion?: 'avanzada';
+  /** Código visible en vez del número, p. ej. "A3". */
+  codigo?: string;
   title: string;
   client: string;
   /** Técnica que enseña el nivel. */

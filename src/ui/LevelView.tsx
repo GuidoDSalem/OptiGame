@@ -72,7 +72,7 @@ export function LevelView({ level, onExit }: { level: Level; onExit(): void }) {
         </button>
         <div>
           <div className="eyebrow">
-            Nivel {level.number} · {level.client}
+            {level.codigo ? `Avanzado · ${level.codigo}` : `Nivel ${level.number}`} · {level.client}
           </div>
           <h2>{level.title}</h2>
         </div>

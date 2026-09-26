@@ -261,3 +261,25 @@ button.link.small { font-size: 0.82rem; }
 .legend .dot.frontera { background: var(--ink); }
 .legend .dot.no-soportado { background: var(--surface); border: 2px solid var(--warn); }
 .legend .dot.solucion { border: 2.5px solid var(--accent); }
+
+/* Gráfico de convergencia (técnicas avanzadas) */
+.convergence .plot path { fill: none; stroke-width: 2; }
+.convergence .cota-inferior path { stroke: var(--accent); }
+.convergence .cota-inferior circle { fill: var(--accent); }
+.convergence .cota-superior path { stroke: var(--ink); }
+.convergence .cota-superior circle { fill: var(--ink); }
+.convergence .propuesta path { stroke: none; }
+.convergence .propuesta circle { fill: var(--muted); }
+.legend .dot.cota-inferior { background: var(--accent); }
+.legend .dot.cota-superior { background: var(--ink); }
+.legend .dot.propuesta { background: var(--muted); }
+
+/* Panel de Benders */
+.benders .bounds { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 12px 0 4px; font-size: 0.92rem; }
+table.data.rounds { font-size: 0.8rem; }
+table.data.rounds td.cut { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.74rem; color: var(--muted); }
+
+/* Sección de técnicas avanzadas en el menú */
+.advanced { margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--line); }
+.advanced h2 { font-size: 1.3rem; }
+.advanced .card:not(.locked) { border-color: var(--ink); }

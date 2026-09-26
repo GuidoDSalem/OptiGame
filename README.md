@@ -37,6 +37,7 @@ src/
     diagnose.ts           Traduce el resultado del solver a feedback pedagógico
     score.ts              Estrellas y distancia al óptimo
     geometry.ts           Región factible 2D (método gráfico)
+    benders.ts            Descomposición de Benders: maestro, subproblema, cortes por dualidad, cotas
     pareto.ts             Dos objetivos: frontera exacta por ε-restricción y puntos soportados
     routing.ts            Ruteo: circuitos, heurísticas, cortes de subtour, formulación MTZ
     indexed.ts            Modelos con índices: conjuntos (ordenados o no), parámetros, familias de
@@ -72,6 +73,11 @@ src/
       ParetoPanel.tsx     Frontera de Pareto (ε-restricción) y puntos que la suma ponderada no ve
       Scene.ts            Lotes con edificios según los proyectos elegidos
       nueva-pampa.ts      Variante: intendencia con compromiso ambiental
+    benders/              Avanzado A3 como PLANTILLA: localización de depósitos por Benders
+      template.ts         crearNivelBenders(variante): modelo completo, teoría, mundo
+      BendersPanel.tsx    Intento manual: el jugador hace de maestro (rondas, cortes, cotas)
+      BendersAuto.tsx     Resultado: Benders automático vs. el modelo completo del jugador
+      cooperativa.ts      Variante: la cooperativa láctea abre depósitos regionales
   config.ts               Funcionalidades en prueba (p. ej. botón "Ver modelo correcto")
   scene/IsoCanvas.tsx     Lienzo Three.js isométrico reutilizable + primitivas (box, cylinder, pipe)
   scene/thumbnail.ts      Render único de una escena a imagen (miniaturas del menú)
