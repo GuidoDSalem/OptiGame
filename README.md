@@ -47,9 +47,10 @@ src/
     transporte-lacteos/   Nivel 3: problema de transporte, modelado con índices
     asignacion/           Nivel 4 como PLANTILLA: asignación con binarias, relajación vs. MIP
       template.ts         crearNivelAsignacion(variante): modelo, teoría, pistas y mundo
-      Scene.ts            Escena genérica (estilo "aula" o "quirofano")
+      Scene.ts            Escena genérica (estilos "aula", "quirofano", "rack")
       escuela.ts          Variante: cursos → aulas
       hospital.ts         Variante: cirugías → quirófanos (compatibilidad por nivel de complejidad)
+      datacenter.ts       Variante: trabajos nocturnos → servidores (RAM y ventana horaria)
   config.ts               Funcionalidades en prueba (p. ej. botón "Ver modelo correcto")
   scene/IsoCanvas.tsx     Lienzo Three.js isométrico reutilizable + primitivas (box, cylinder, pipe)
   scene/thumbnail.ts      Render único de una escena a imagen (miniaturas del menú)

@@ -4,7 +4,7 @@ import type { SceneProps, SceneSpec } from '../types';
 import type { Contenedor, Item } from './template';
 
 /** Cómo se dibuja cada contenedor. */
-export type EstiloContenedor = 'aula' | 'quirofano';
+export type EstiloContenedor = 'aula' | 'quirofano' | 'rack';
 
 /** Coordenadas de pantalla (across = derecha, down = abajo) → piso isométrico. */
 const floor = (across: number, down: number) => new THREE.Vector3((across + down) / 2, 0, (down - across) / 2);
@@ -21,6 +21,23 @@ function decorar(estilo: EstiloContenedor, across: number, w: number): THREE.Obj
     wall.position.set(back.x, 0.55, back.z);
     wall.rotation.y = Math.PI / 4;
     return [wall];
+  }
+  if (estilo === 'rack') {
+    // Fila de gabinetes con una luz de estado, a lo largo del fondo del piso.
+    // El piso está rotado 45°: un desplazamiento local d se ve como d·√2 en pantalla.
+    const n = Math.max(1, Math.floor((w - 0.4) / 1.2));
+    const down = BIN_DOWN - 1.8 * Math.SQRT2 + 0.9;
+    return Array.from({ length: n }, (_, k) => {
+      const p = floor(across + (-w / 2 + 0.7 + k * 1.2) * Math.SQRT2, down);
+      const rack = box(0.9, 2.2, 0.8, PALETTE.muted);
+      rack.position.set(p.x, 1.1, p.z);
+      rack.rotation.y = Math.PI / 4;
+      const led = box(0.6, 0.08, 0.02, PALETTE.water);
+      const f = floor(across + (-w / 2 + 0.7 + k * 1.2) * Math.SQRT2, down + 0.58);
+      led.position.set(f.x, 1.8, f.z);
+      led.rotation.y = Math.PI / 4;
+      return new THREE.Group().add(rack, led);
+    });
   }
   // Quirófano: pared baja de vidrio + lámpara cenital.
   const wall = box(w, 0.5, 0.08, PALETTE.muted);
@@ -96,7 +113,7 @@ export function crearEscenaAsignacion(opts: {
           const whole = idx >= 0 && shares.filter((s) => s > 1e-6).length === 1;
           const p = whole
             ? floor(across[idx] - 2 + slots[idx]++ * 2, BIN_DOWN + 0.3)
-            : floor(-7.5 + waitSlot++ * 3, WAIT_DOWN);
+            : floor(-8.5 + waitSlot++ * 3.4, WAIT_DOWN);
           m.position.set(p.x, h / 2 + 0.15, p.z);
           (m.material as THREE.MeshStandardMaterial).color.setHex(whole ? PALETTE.ink : PALETTE.bad);
           label.position.copy(p).setY(h + 0.7);
