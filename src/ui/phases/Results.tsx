@@ -2,7 +2,7 @@ import { Fragment, useState } from 'react';
 import { FEATURES } from '../../config';
 import { LevelScene } from '../../scene/LevelScene';
 import type { Diagnosis } from '../../engine/diagnose';
-import type { LPModel } from '../../engine/model';
+import type { Constraint, LPModel } from '../../engine/model';
 import { stars } from '../../engine/score';
 import { bumpRhs, improves, type BumpResult } from '../../engine/sensitivity';
 import type { SolveResult } from '../../engine/solver';
@@ -25,11 +25,14 @@ interface Props {
   onBack(): void;
   /** Carga el modelo de referencia en el modelador (provisorio, ver FEATURES). */
   onShowSolution(): void;
+  /** Agrega cortes "a demanda" y vuelve a resolver (niveles con `lazyCuts`). */
+  onAddCuts?(cuts: Constraint[]): void;
+  solving?: boolean;
 }
 
 const money = (n: number) => n.toLocaleString('es-AR', { maximumFractionDigits: 2 });
 
-export function Results({ level, model, result, diagnosis, optimum, manualBest, onBack, onShowSolution }: Props) {
+export function Results({ level, model, result, diagnosis, optimum, manualBest, onBack, onShowSolution, onAddCuts, solving }: Props) {
   const ev = diagnosis.evaluation;
   const n = ev ? stars(ev, optimum) : 0;
   const plot = level.plot;
@@ -39,6 +42,10 @@ export function Results({ level, model, result, diagnosis, optimum, manualBest, 
   const improvement = ev && manualBest !== undefined ? (isMin ? manualBest - ev.objective : ev.objective - manualBest) : 0;
 
   // Resultados del botón "+1" por restricción (índice → resultado o 'loading').
+  // Cortes que prohíben la solución actual (p. ej. subtours), si el nivel los define.
+  const pendingCuts = level.lazyCuts && result.status === 'optimal' ? level.lazyCuts.generate(result.values) : [];
+  const cutsInModel = model.constraints.filter((c) => c.id.startsWith('cut_')).length;
+
   const [bumps, setBumps] = useState<Record<number, BumpResult | 'loading'>>({});
   // Con muchas restricciones, arrancamos mostrando sólo las activas (los cuellos de botella).
   const [showAllRows, setShowAllRows] = useState(false);
@@ -65,6 +72,23 @@ export function Results({ level, model, result, diagnosis, optimum, manualBest, 
             </p>
           ))}
         </div>
+
+        {pendingCuts.length > 0 && onAddCuts && (
+          <div className="cuts-panel">
+            <p>
+              <Rich text={level.lazyCuts!.explain(result.values)} />
+            </p>
+            <button className="primary" disabled={solving} onClick={() => onAddCuts(pendingCuts)}>
+              {solving ? 'Resolviendo…' : `${level.lazyCuts!.action} (+${pendingCuts.length})`}
+            </button>
+            {cutsInModel > 0 && <p className="muted">Cortes agregados hasta ahora: {cutsInModel}.</p>}
+          </div>
+        )}
+        {pendingCuts.length === 0 && cutsInModel > 0 && (
+          <p className="note">
+            Hicieron falta <strong>{cutsInModel}</strong> cortes para llegar a una solución sin subtours.
+          </p>
+        )}
 
         {result.status === 'optimal' && ev && (
           <>
@@ -194,7 +218,7 @@ export function Results({ level, model, result, diagnosis, optimum, manualBest, 
                     })}
                   </tbody>
                 </table>
-                {manyRows && (
+                {manyRows && activeCount < result.rows.length && (
                   <button className="link" onClick={() => setShowAllRows(!showAllRows)}>
                     {showAllRows
                       ? `Mostrar sólo las ${activeCount} activas`

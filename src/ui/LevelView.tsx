@@ -53,12 +53,11 @@ export function LevelView({ level, onExit }: { level: Level; onExit(): void }) {
     });
   }, [manual, level]);
 
-  const runSolve = async () => {
+  const runSolve = async (override?: IndexedDraft) => {
     setSolving(true);
+    const d = override ?? idraft;
     const model =
-      level.indexed && idraft
-        ? compileIndexed(level.indexed.spec, idraft).model
-        : modelFromDraft(draft, level.starterModel).model;
+      level.indexed && d ? compileIndexed(level.indexed.spec, d).model : modelFromDraft(draft, level.starterModel).model;
     const result = await solve(model);
     setSolved({ model, result, diagnosis: diagnose(level, model, result, optimum) });
     setSolving(false);
@@ -102,7 +101,7 @@ export function LevelView({ level, onExit }: { level: Level; onExit(): void }) {
             level={level as Level & { indexed: IndexedLevel }}
             draft={idraft}
             onChange={setIdraft}
-            onSolve={runSolve}
+            onSolve={() => runSolve()}
             solving={solving}
             revealed={revealed}
           />
@@ -112,7 +111,7 @@ export function LevelView({ level, onExit }: { level: Level; onExit(): void }) {
             level={level}
             draft={draft}
             onChange={setDraft}
-            onSolve={runSolve}
+            onSolve={() => runSolve()}
             solving={solving}
             revealed={revealed}
           />
@@ -126,6 +125,17 @@ export function LevelView({ level, onExit }: { level: Level; onExit(): void }) {
             optimum={optimum}
             manualBest={manualBest}
             onBack={() => setPhase(3)}
+            solving={solving}
+            onAddCuts={
+              level.lazyCuts && idraft
+                ? (cuts) => {
+                    // Agrega los cortes al modelo del jugador y vuelve a resolver en el mismo paso.
+                    const next = { ...idraft, cuts: [...(idraft.cuts ?? []), ...cuts] };
+                    setIdraft(next);
+                    runSolve(next);
+                  }
+                : undefined
+            }
             onShowSolution={() => {
               if (level.indexed) setIdraft(level.indexed.reference);
               else setDraft(draftFromModel(level.referenceModel));

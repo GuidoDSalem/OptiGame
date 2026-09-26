@@ -35,6 +35,7 @@ src/
     diagnose.ts           Traduce el resultado del solver a feedback pedagógico
     score.ts              Estrellas y distancia al óptimo
     geometry.ts           Región factible 2D (método gráfico)
+    routing.ts            Ruteo: circuitos, heurísticas, cortes de subtour, formulación MTZ
     indexed.ts            Modelos con índices: conjuntos (ordenados o no), parámetros, familias de
                           variables y restricciones como sumas de términos (con desfase t−1) → LPModel
   levels/
@@ -57,6 +58,11 @@ src/
       Scene.ts            Escena de línea de tiempo (envío / stock / demanda), estilos "minera" e "hidro"
       minera.ts           Variante: mina → tren → puerto → barcos
       hidro.ts            Variante: central de bombeo (bombear barato, entregar en el pico)
+    ruteo/                Nivel 6 como PLANTILLA: TSP con subtours y cortes a demanda
+      template.ts         crearNivelRuteo(variante): modelo base, teoría, mundo, cortes (lazyCuts)
+      RouteBuilder.tsx    Intento manual: armar la ruta + heurísticas (vecino más cercano, 2-opt)
+      Scene.ts            Ciudad en grilla con la ruta por las calles
+      reparto.ts          Variante: panadería que reparte a comercios del barrio
   config.ts               Funcionalidades en prueba (p. ej. botón "Ver modelo correcto")
   scene/IsoCanvas.tsx     Lienzo Three.js isométrico reutilizable + primitivas (box, cylinder, pipe)
   scene/thumbnail.ts      Render único de una escena a imagen (miniaturas del menú)

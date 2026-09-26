@@ -17,11 +17,14 @@ export function Manual({ level, values, onChange, onNext }: Props) {
     <div className="two-col">
       <div>
         <p className="lead">
-          {level.indexed ? 'Completá la tabla' : 'Mové los controles'} y buscá la mejor decisión que cumpla todas
-          las reglas. Sin fórmulas: pura intuición.
+          {level.manualComponent ? 'Armá tu propia solución' : level.indexed ? 'Completá la tabla' : 'Mové los controles'}{' '}
+          y buscá la mejor decisión que cumpla todas las reglas. Sin fórmulas: pura intuición.
         </p>
-        {level.indexed && <DecisionTable indexed={level.indexed} values={values} onChange={onChange} />}
-        {!level.indexed &&
+        {level.manualComponent && <level.manualComponent values={values} onChange={onChange} />}
+        {!level.manualComponent && level.indexed && (
+          <DecisionTable indexed={level.indexed} values={values} onChange={onChange} />
+        )}
+        {!level.manualComponent && !level.indexed &&
           level.variables.map((v) => (
           <label key={v.id} className="slider">
             <span>

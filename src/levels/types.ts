@@ -1,5 +1,6 @@
+import type { ComponentType } from 'react';
 import type * as THREE from 'three';
-import type { LPModel } from '../engine/model';
+import type { Constraint, LPModel } from '../engine/model';
 import type { IndexedDraft, IndexedSpec } from '../engine/indexed';
 import type { IsoSceneHandle } from '../scene/IsoCanvas';
 
@@ -46,6 +47,11 @@ export interface Evaluation {
   checks: Check[];
 }
 
+export interface ManualProps {
+  values: Record<string, number>;
+  onChange(values: Record<string, number>): void;
+}
+
 export interface SceneProps {
   values: Record<string, number>;
   evaluation: Evaluation;
@@ -80,6 +86,20 @@ export interface Level {
    * el resto (p. ej. el stock que resulta de lo enviado) antes de evaluar y dibujar.
    */
   manualDerive?(values: Record<string, number>): Record<string, number>;
+  /** Controles propios para el intento manual (reemplazan a los sliders o la tabla). */
+  manualComponent?: ComponentType<ManualProps>;
+  /**
+   * Cortes "a demanda": dada una solución del solver, devuelve restricciones que la prohíben
+   * si viola algo que el modelo base no captura (p. ej. subtours). El jugador los agrega y
+   * vuelve a resolver hasta que no queden.
+   */
+  lazyCuts?: {
+    generate(values: Record<string, number>): Constraint[];
+    /** Texto del panel, p. ej. "La solución tiene 3 circuitos separados." */
+    explain(values: Record<string, number>): string;
+    /** Texto del botón, p. ej. "Prohibir estos subtours y volver a resolver". */
+    action: string;
+  };
   /** Si el nivel tiene 2 variables, se puede mostrar el método gráfico. */
   plot?: { x: string; y: string; xmax: number; ymax: number; /** Máximo del slider de la recta de isocosto. */ isoMax: number };
   scene: SceneSpec;

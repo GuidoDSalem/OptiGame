@@ -285,6 +285,14 @@ export function IndexedModeler({ level, draft, onChange, onSolve, solving, revea
           );
         })}
         <button onClick={addRow}>+ Agregar familia de restricciones</button>
+        {(draft.cuts?.length ?? 0) > 0 && (
+          <p className="note">
+            Además hay <strong>{draft.cuts!.length}</strong> cortes agregados desde el resultado.{' '}
+            <button className="link small" onClick={() => onChange({ ...draft, cuts: [] })}>
+              Quitar cortes
+            </button>
+          </p>
+        )}
 
         <div className="actions">
           <button className="primary" disabled={hasErrors || solving} onClick={onSolve}>

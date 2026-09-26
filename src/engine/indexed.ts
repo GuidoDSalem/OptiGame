@@ -32,7 +32,15 @@ export interface VarFamily {
   over: string[];
   label: string;
   unit: string;
+  /**
+   * Pares de conjuntos cuyos índices tienen que ser distintos (p. ej. ["I","J"] para no crear
+   * x_ii en un ruteo: no se "viaja" de un lugar a sí mismo).
+   */
+  distinct?: [string, string];
 }
+
+/** ¿La asignación es válida para la familia (respeta los índices distintos)? */
+export const validFor = (fam: VarFamily, a: Assignment) => !fam.distinct || a[fam.distinct[0]] !== a[fam.distinct[1]];
 
 /** Dominio de una familia de variables: lo elige el jugador. */
 export type VarType = 'cont' | 'int' | 'bin';
@@ -80,6 +88,11 @@ export interface IndexedDraft {
   constraints: IndexedConstraint[];
   /** Tipo de cada familia de variables (por defecto continua). */
   varTypes?: Record<string, VarType>;
+  /**
+   * Cortes agregados "a demanda" (p. ej. eliminación de subtours): restricciones planas que se
+   * suman al modelo expandido.
+   */
+  cuts?: Constraint[];
 }
 
 export const varType = (d: IndexedDraft, famId: string): VarType => d.varTypes?.[famId] ?? 'cont';
@@ -118,7 +131,9 @@ export function varId(fam: VarFamily, a: Assignment): string {
 /** Variables planas de todas las familias, con su asignación de índices. */
 export function flatVars(spec: IndexedSpec) {
   return spec.vars.flatMap((fam) =>
-    assignments(spec, fam.over).map((a) => ({ id: varId(fam, a), fam, a })),
+    assignments(spec, fam.over)
+      .filter((a) => validFor(fam, a))
+      .map((a) => ({ id: varId(fam, a), fam, a })),
   );
 }
 
@@ -184,7 +199,7 @@ function addTerm(spec: IndexedSpec, t: Term, forall: string[], a: Assignment, in
   const sumOver = fam.over.filter((s) => !forall.includes(s));
   for (const b of assignments(spec, sumOver)) {
     const full = shift(spec, t, { ...a, ...b });
-    if (!full) continue;
+    if (!full || !validFor(fam, full)) continue;
     const id = varId(fam, full);
     const k = t.sign * (t.coef ? paramValue(spec, t.coef, full) : 1);
     into[id] = (into[id] ?? 0) + k;
@@ -225,6 +240,7 @@ export function compileIndexed(spec: IndexedSpec, d: IndexedDraft): CompileResul
     }
   });
 
+  constraints.push(...(d.cuts ?? []));
   return { model: { sense: d.sense, objective, variables, constraints }, errors };
 }
 

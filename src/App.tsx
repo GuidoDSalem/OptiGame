@@ -6,7 +6,6 @@ import { LevelView } from './ui/LevelView';
 
 /** Niveles planificados (todavía no implementados), para mostrar el recorrido. */
 const UPCOMING = [
-  { client: 'Reparto urbano', technique: 'Ruteo (TSP/VRP) · heurísticas' },
   { client: 'Ciudad en crecimiento', technique: 'Multi-objetivo · decisiones encadenadas' },
 ];
 

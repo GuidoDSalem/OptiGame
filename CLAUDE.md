@@ -8,6 +8,7 @@ Juego educativo de optimización (Vite + React + TypeScript + Three.js + HiGHS-w
 - En strings de LaTeX dentro de template literals hay que escapar la barra: `\\leq`, `\\;`. Ojo: al escribir archivos con heredocs de bash, `\\;` puede quedar como `\;`; verificar después.
 - Niveles con estructura repetida usan `indexed` (ver `src/engine/indexed.ts` y el nivel 3); `referenceModel` se obtiene con `compileIndexed`.
 - Las restricciones indexadas son listas de términos (`term(var, coef, sign, lag)`); el desfase sólo aplica a conjuntos `ordered`.
+- `Level.lazyCuts` permite cortes a demanda (el jugador los agrega desde el resultado); `Level.manualComponent` reemplaza los controles del intento manual.
 - Niveles con varias versiones usan una plantilla (ver `src/levels/asignacion/`); cada versión nueva tiene que pasar los tests pedagógicos genéricos.
 - Las escenas son `SceneSpec` (`create` + `viewSize`) para poder renderizarlas también como miniatura.
 - Estilo visual minimalista: paleta en `src/styles.css` (`:root`) y `PALETTE` en `src/scene/IsoCanvas.tsx`.
