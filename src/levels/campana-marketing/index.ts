@@ -1,7 +1,7 @@
 import type { LPModel } from '../../engine/model';
 import type { Check, Level } from '../types';
 import { CANALES, DATA as D } from './data';
-import { MarketingScene } from './Scene';
+import { marketingScene } from './Scene';
 
 const ids = CANALES.map((c) => c.id);
 const by = <K extends 'alcance' | 'jovenes' | 'horas'>(k: K) => Object.fromEntries(CANALES.map((c) => [c.id, c[k]]));
@@ -41,7 +41,7 @@ export const campanaMarketing: Level = {
     variables: ids.map((id) => ({ id })),
     constraints: [],
   },
-  Scene: MarketingScene,
+  scene: marketingScene,
 
   briefing: [
     {

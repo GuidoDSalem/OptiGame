@@ -1,7 +1,7 @@
 import type { LPModel } from '../../engine/model';
 import type { Check, Level } from '../types';
 import { DATA as D } from './data';
-import { PlantaScene } from './Scene';
+import { plantaScene } from './Scene';
 
 const referenceModel: LPModel = {
   sense: 'min',
@@ -43,7 +43,7 @@ export const plantaAgua: Level = {
     constraints: [],
   },
   plot: { x: 'rio', y: 'pozo', xmax: 60, ymax: 60, isoMax: 12000 },
-  Scene: PlantaScene,
+  scene: plantaScene,
 
   briefing: [
     {

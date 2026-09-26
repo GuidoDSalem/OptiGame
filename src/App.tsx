@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { LEVELS } from './levels';
+import { LevelThumb } from './ui/components/LevelThumb';
 import { LevelView } from './ui/LevelView';
 
 /** Niveles planificados (todavía no implementados), para mostrar el recorrido. */
 const UPCOMING = [
-  { client: 'Distribuidora', technique: 'Transporte y flujo en redes' },
   { client: 'Escuela', technique: 'Asignación · variables binarias' },
   { client: 'Minera y puerto', technique: 'Scheduling · MIP' },
   { client: 'Reparto urbano', technique: 'Ruteo (TSP/VRP) · heurísticas' },
@@ -29,16 +29,23 @@ export function App() {
       <div className="cards">
         {LEVELS.map((l) => (
           <button key={l.id} className="card" onClick={() => setCurrent(l.id)}>
-            <span className="eyebrow">Nivel {l.number}</span>
-            <strong>{l.client}</strong>
-            <span className="muted">{l.technique}</span>
+            <LevelThumb level={l} />
+            <span className="card-text">
+              <span className="eyebrow">Nivel {l.number}</span>
+              <strong>{l.title}</strong>
+              <span>{l.client}</span>
+              <span className="muted">{l.technique}</span>
+            </span>
           </button>
         ))}
         {UPCOMING.map((u, i) => (
           <div key={u.client} className="card locked">
-            <span className="eyebrow">Nivel {LEVELS.length + i + 1} · próximamente</span>
-            <strong>{u.client}</strong>
-            <span className="muted">{u.technique}</span>
+            <div className="thumb">?</div>
+            <span className="card-text">
+              <span className="eyebrow">Nivel {LEVELS.length + i + 1} · próximamente</span>
+              <strong>{u.client}</strong>
+              <span className="muted">{u.technique}</span>
+            </span>
           </div>
         ))}
       </div>

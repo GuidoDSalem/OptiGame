@@ -35,6 +35,7 @@ src/
     diagnose.ts           Traduce el resultado del solver a feedback pedagógico
     score.ts              Estrellas y distancia al óptimo
     geometry.ts           Región factible 2D (método gráfico)
+    indexed.ts            Modelos con índices (conjuntos, parámetros, familias) → expansión a LPModel
   levels/
     types.ts              Contrato `Level`: historia, teoría, variables, modelo de referencia, mundo, escena
     index.ts              Registro de niveles
@@ -43,8 +44,10 @@ src/
       index.ts            Definición: textos, modelo de referencia, evaluate() del mundo, pistas
       Scene.tsx           Escena isométrica
     campana-marketing/    Nivel 2: PL con 4 variables, precios sombra y costos reducidos
+    transporte-lacteos/   Nivel 3: problema de transporte, modelado con índices
   config.ts               Funcionalidades en prueba (p. ej. botón "Ver modelo correcto")
   scene/IsoCanvas.tsx     Lienzo Three.js isométrico reutilizable + primitivas (box, cylinder, pipe)
+  scene/thumbnail.ts      Render único de una escena a imagen (miniaturas del menú)
   ui/
     LevelView.tsx         Orquesta las 5 fases
     phases/               Briefing, Manual, Theory, Modeler, Results (+ draft.ts: estado del modelador)
@@ -65,9 +68,14 @@ puede decir "tu modelo es coherente, pero te olvidaste de la salinidad y el agua
 
 ## Agregar un nivel
 
-1. Crear `src/levels/<id>/` con `data.ts`, `index.ts` (un objeto `Level`) y `Scene.tsx`.
+1. Crear `src/levels/<id>/` con `data.ts`, `index.ts` (un objeto `Level`) y `Scene.ts` (un `SceneSpec`
+   con la función `create`; se usa en el juego y para la miniatura del menú).
 2. Registrarlo en `src/levels/index.ts`.
 3. Agregar `tests/<id>.test.ts` que verifique el óptimo de referencia y que `evaluate` coincida con él.
+
+Si el problema tiene estructura repetida (orígenes × destinos, cursos × aulas…), definí `indexed`
+en el nivel: conjuntos, parámetros y familias de variables. El jugador modela con "para cada" y
+sumatorias, y `compileIndexed` lo expande al modelo plano. Ver el nivel 3.
 
 Si el nivel necesita variables enteras o binarias (asignación, scheduling), `VariableSpec` ya soporta
 `integer: true` y HiGHS resuelve MIP.
@@ -75,7 +83,6 @@ Si el nivel necesita variables enteras o binarias (asignación, scheduling), `Va
 ## Próximos pasos posibles
 
 - Más niveles (ver el mapa en la pantalla de inicio).
-- Modelador con más variables: tablas indexadas (`x[i,j]`) para transporte y asignación.
 - Modo "código": escribir el modelo en formato LP o en Python (PuLP vía Pyodide).
 - Guardar el progreso (estrellas por nivel).
 - Resolver en un Web Worker para modelos grandes.

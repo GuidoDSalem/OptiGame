@@ -1,7 +1,6 @@
-import { useCallback } from 'react';
 import * as THREE from 'three';
-import { IsoCanvas, PALETTE, box, cylinder, type IsoSceneHandle } from '../../scene/IsoCanvas';
-import type { SceneProps } from '../types';
+import { PALETTE, box, cylinder, type IsoSceneHandle } from '../../scene/IsoCanvas';
+import type { SceneProps, SceneSpec } from '../types';
 import { CANALES, DATA as D } from './data';
 
 /** Alcance máximo teórico (todo al canal de mayor alcance), para escalar la multitud. */
@@ -93,7 +92,4 @@ function create(scene: THREE.Scene): IsoSceneHandle<SceneProps> {
   };
 }
 
-export function MarketingScene(props: SceneProps) {
-  const c = useCallback(create, []);
-  return <IsoCanvas create={c} params={props} viewSize={10.5} />;
-}
+export const marketingScene: SceneSpec = { create, viewSize: 10.5 };

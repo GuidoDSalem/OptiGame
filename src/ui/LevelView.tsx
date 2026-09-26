@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { diagnose, type Diagnosis } from '../engine/diagnose';
+import { compileIndexed, type IndexedDraft } from '../engine/indexed';
 import type { LPModel } from '../engine/model';
 import { solve, type SolveResult } from '../engine/solver';
-import type { Level } from '../levels/types';
+import type { IndexedLevel, Level } from '../levels/types';
 import { Briefing } from './phases/Briefing';
+import { IndexedModeler } from './phases/IndexedModeler';
 import { draftFromModel, modelFromDraft, type Draft } from './phases/draft';
 import { Manual } from './phases/Manual';
 import { Modeler } from './phases/Modeler';
@@ -21,10 +23,12 @@ interface Solved {
 export function LevelView({ level, onExit }: { level: Level; onExit(): void }) {
   const [phase, setPhase] = useState(0);
   const [manual, setManual] = useState<Record<string, number>>(() =>
-    Object.fromEntries(level.variables.map((v) => [v.id, Math.round((v.min + v.max) / 2)])),
+    // En niveles con índices se arranca de cero (la tabla vacía); si no, a mitad de cada slider.
+    Object.fromEntries(level.variables.map((v) => [v.id, level.indexed ? 0 : Math.round((v.min + v.max) / 2)])),
   );
   const [manualBest, setManualBest] = useState<number | undefined>();
   const [draft, setDraft] = useState<Draft>(() => draftFromModel(level.starterModel));
+  const [idraft, setIdraft] = useState<IndexedDraft | null>(() => level.indexed?.starter ?? null);
   const [optimum, setOptimum] = useState<number | undefined>();
   const [solved, setSolved] = useState<Solved | null>(null);
   const [solving, setSolving] = useState(false);
@@ -47,7 +51,10 @@ export function LevelView({ level, onExit }: { level: Level; onExit(): void }) {
 
   const runSolve = async () => {
     setSolving(true);
-    const { model } = modelFromDraft(draft, level.starterModel);
+    const model =
+      level.indexed && idraft
+        ? compileIndexed(level.indexed.spec, idraft).model
+        : modelFromDraft(draft, level.starterModel).model;
     const result = await solve(model);
     setSolved({ model, result, diagnosis: diagnose(level, model, result, optimum) });
     setSolving(false);
@@ -86,7 +93,17 @@ export function LevelView({ level, onExit }: { level: Level; onExit(): void }) {
         {phase === 0 && <Briefing level={level} onNext={() => setPhase(1)} />}
         {phase === 1 && <Manual level={level} values={manual} onChange={setManual} onNext={() => setPhase(2)} />}
         {phase === 2 && <Theory level={level} manual={manual} onNext={() => setPhase(3)} />}
-        {phase === 3 && (
+        {phase === 3 && level.indexed && idraft && (
+          <IndexedModeler
+            level={level as Level & { indexed: IndexedLevel }}
+            draft={idraft}
+            onChange={setIdraft}
+            onSolve={runSolve}
+            solving={solving}
+            revealed={revealed}
+          />
+        )}
+        {phase === 3 && !level.indexed && (
           <Modeler
             level={level}
             draft={draft}
@@ -106,7 +123,8 @@ export function LevelView({ level, onExit }: { level: Level; onExit(): void }) {
             manualBest={manualBest}
             onBack={() => setPhase(3)}
             onShowSolution={() => {
-              setDraft(draftFromModel(level.referenceModel));
+              if (level.indexed) setIdraft(level.indexed.reference);
+              else setDraft(draftFromModel(level.referenceModel));
               setRevealed(true);
               setPhase(3);
             }}

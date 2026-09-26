@@ -1,4 +1,5 @@
 import { FEATURES } from '../../config';
+import { LevelScene } from '../../scene/LevelScene';
 import type { Diagnosis } from '../../engine/diagnose';
 import type { LPModel } from '../../engine/model';
 import { stars } from '../../engine/score';
@@ -6,6 +7,7 @@ import type { SolveResult } from '../../engine/solver';
 import type { Level } from '../../levels/types';
 import { Checks, Stars } from '../components/Checks';
 import { FeasiblePlot } from '../components/FeasiblePlot';
+import { MatrixView } from '../components/MatrixView';
 import { Rich } from '../components/Rich';
 import { Tex } from '../components/Tex';
 
@@ -49,9 +51,11 @@ export function Results({ level, model, result, diagnosis, optimum, manualBest, 
         {result.status === 'optimal' && ev && (
           <>
             <h4>Decisión del solver</h4>
+            {level.indexed && <MatrixView indexed={level.indexed} values={result.values} format={money} />}
             <table className="data">
               <tbody>
-                {level.variables.map((v) => (
+                {!level.indexed &&
+                  level.variables.map((v) => (
                   <tr key={v.id}>
                     <td>
                       <Tex tex={v.symbol} /> {v.label}
@@ -132,7 +136,17 @@ export function Results({ level, model, result, diagnosis, optimum, manualBest, 
               </>
             )}
 
-            {Object.keys(result.reducedCosts).length > 0 && (
+            {Object.keys(result.reducedCosts).length > 0 && level.indexed && (
+              <>
+                <p className="muted">
+                  <strong>Costos reducidos</strong> de cada ruta: cuánto aumentaría el costo por cada camión que
+                  mandes por una ruta que el solver dejó sin usar.
+                </p>
+                <MatrixView indexed={level.indexed} values={result.reducedCosts} totals={false} format={money} />
+              </>
+            )}
+
+            {Object.keys(result.reducedCosts).length > 0 && !level.indexed && (
               <>
                 <p className="muted">
                   El <strong>costo reducido</strong> de una variable que quedó en 0 indica cuánto empeoraría el
@@ -174,7 +188,7 @@ export function Results({ level, model, result, diagnosis, optimum, manualBest, 
       </div>
 
       <div className="sticky">
-        {ev && <level.Scene values={result.values} evaluation={ev} />}
+        {ev && <LevelScene level={level} values={result.values} evaluation={ev} />}
         {plot && result.status === 'optimal' && (
           <FeasiblePlot
             model={model}

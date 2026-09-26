@@ -1,7 +1,6 @@
-import { useCallback } from 'react';
 import * as THREE from 'three';
-import { IsoCanvas, PALETTE, box, cylinder, pipe, type IsoSceneHandle } from '../../scene/IsoCanvas';
-import type { SceneProps } from '../types';
+import { PALETTE, box, cylinder, pipe, type IsoSceneHandle } from '../../scene/IsoCanvas';
+import type { SceneProps, SceneSpec } from '../types';
 import { DATA as D } from './data';
 
 type Params = SceneProps;
@@ -87,7 +86,4 @@ function create(scene: THREE.Scene): IsoSceneHandle<Params> {
   };
 }
 
-export function PlantaScene(props: SceneProps) {
-  const c = useCallback(create, []);
-  return <IsoCanvas create={c} params={props} />;
-}
+export const plantaScene: SceneSpec = { create };

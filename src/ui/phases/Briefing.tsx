@@ -1,4 +1,5 @@
 import type { Level } from '../../levels/types';
+import { LevelScene } from '../../scene/LevelScene';
 import { Content } from '../components/Rich';
 
 export function Briefing({ level, onNext }: { level: Level; onNext(): void }) {
@@ -12,7 +13,7 @@ export function Briefing({ level, onNext }: { level: Level; onNext(): void }) {
         </button>
       </div>
       <div className="sticky">
-        <level.Scene values={zero} evaluation={level.evaluate(zero)} />
+        <LevelScene level={level} values={zero} evaluation={level.evaluate(zero)} />
       </div>
     </div>
   );

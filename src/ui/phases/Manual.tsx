@@ -1,5 +1,7 @@
 import type { Level } from '../../levels/types';
+import { LevelScene } from '../../scene/LevelScene';
 import { Checks } from '../components/Checks';
+import { MatrixView } from '../components/MatrixView';
 import { Tex } from '../components/Tex';
 
 interface Props {
@@ -15,10 +17,12 @@ export function Manual({ level, values, onChange, onNext }: Props) {
     <div className="two-col">
       <div>
         <p className="lead">
-          Mové los controles y buscá la decisión más barata que cumpla todas las reglas. Sin fórmulas: pura
-          intuición.
+          {level.indexed ? 'Completá la tabla' : 'Mové los controles'} y buscá la mejor decisión que cumpla todas
+          las reglas. Sin fórmulas: pura intuición.
         </p>
-        {level.variables.map((v) => (
+        {level.indexed && <MatrixView indexed={level.indexed} values={values} onChange={onChange} />}
+        {!level.indexed &&
+          level.variables.map((v) => (
           <label key={v.id} className="slider">
             <span>
               <Tex tex={v.symbol} /> {v.label}
@@ -50,7 +54,7 @@ export function Manual({ level, values, onChange, onNext }: Props) {
         </button>
       </div>
       <div className="sticky">
-        <level.Scene values={values} evaluation={ev} />
+        <LevelScene level={level} values={values} evaluation={ev} />
       </div>
     </div>
   );

@@ -53,19 +53,8 @@ export function IsoCanvas<P>({ create, params, viewSize = 9, height = 320 }: Pro
     host.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(PALETTE.bg);
-
-    const camera = new THREE.OrthographicCamera();
-    camera.position.set(20, 20, 20);
-    camera.lookAt(0, 0, 0);
-
-    scene.add(new THREE.HemisphereLight(0xffffff, 0xd8d8d0, 1.6));
-    const sun = new THREE.DirectionalLight(0xffffff, 1.4);
-    sun.position.set(8, 14, 4);
-    sun.castShadow = true;
-    sun.shadow.mapSize.set(1024, 1024);
-    Object.assign(sun.shadow.camera, { left: -15, right: 15, top: 15, bottom: -15 });
-    scene.add(sun);
+    const camera = isoCamera();
+    prepareScene(scene);
 
     const handle = create(scene);
     handleRef.current = handle;
@@ -83,14 +72,7 @@ export function IsoCanvas<P>({ create, params, viewSize = 9, height = 320 }: Pro
       const w = host.clientWidth;
       const h = host.clientHeight;
       renderer.setSize(w, h);
-      const aspect = w / h;
-      camera.left = -viewSize;
-      camera.right = viewSize;
-      camera.top = viewSize / aspect;
-      camera.bottom = -viewSize / aspect;
-      camera.near = -100;
-      camera.far = 100;
-      camera.updateProjectionMatrix();
+      fitCamera(camera, viewSize, w / h);
     };
     resize();
     const ro = new ResizeObserver(resize);
@@ -116,13 +98,7 @@ export function IsoCanvas<P>({ create, params, viewSize = 9, height = 320 }: Pro
       cancelAnimationFrame(raf);
       ro.disconnect();
       labelEls.forEach((el) => el.remove());
-      scene.traverse((o) => {
-        const m = o as THREE.Mesh;
-        m.geometry?.dispose();
-        const mat = m.material as THREE.Material | THREE.Material[] | undefined;
-        if (Array.isArray(mat)) mat.forEach((x) => x.dispose());
-        else mat?.dispose();
-      });
+      disposeScene(scene);
       renderer.dispose();
       renderer.domElement.remove();
     };
@@ -135,6 +111,46 @@ export function IsoCanvas<P>({ create, params, viewSize = 9, height = 320 }: Pro
   }, [params]);
 
   return <div ref={hostRef} className="iso-canvas" style={{ height }} />;
+}
+
+/** Fondo y luces comunes a todas las escenas. */
+export function prepareScene(scene: THREE.Scene) {
+  scene.background = new THREE.Color(PALETTE.bg);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xd8d8d0, 1.6));
+  const sun = new THREE.DirectionalLight(0xffffff, 1.4);
+  sun.position.set(8, 14, 4);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(1024, 1024);
+  Object.assign(sun.shadow.camera, { left: -15, right: 15, top: 15, bottom: -15 });
+  scene.add(sun);
+}
+
+export function isoCamera(): THREE.OrthographicCamera {
+  const camera = new THREE.OrthographicCamera();
+  camera.position.set(20, 20, 20);
+  camera.lookAt(0, 0, 0);
+  return camera;
+}
+
+export function fitCamera(camera: THREE.OrthographicCamera, viewSize: number, aspect: number) {
+  camera.left = -viewSize;
+  camera.right = viewSize;
+  camera.top = viewSize / aspect;
+  camera.bottom = -viewSize / aspect;
+  camera.near = -100;
+  camera.far = 100;
+  camera.updateProjectionMatrix();
+}
+
+/** Libera geometrías y materiales de una escena. */
+export function disposeScene(scene: THREE.Scene) {
+  scene.traverse((o) => {
+    const m = o as THREE.Mesh;
+    m.geometry?.dispose();
+    const mat = m.material as THREE.Material | THREE.Material[] | undefined;
+    if (Array.isArray(mat)) mat.forEach((x) => x.dispose());
+    else mat?.dispose();
+  });
 }
 
 /** Utilidades para armar escenas minimalistas. */
