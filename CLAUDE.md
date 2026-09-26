@@ -14,6 +14,7 @@ Juego educativo de optimización (Vite + React + TypeScript + Three.js + HiGHS-w
 - Los niveles de "Técnicas avanzadas" llevan `seccion: 'avanzada'` y `codigo` (A1…A5); el menú los muestra aparte.
 - Un coeficiente puede tener índices del "para cada" que la variable no tiene (`a_{ip}·x_p` para cada `i`, ver A2).
 - Un término puede llevar dos coeficientes (`termProd('x', 'p', 't')` = p_s·t_dc·x); en el modelador se habilita con `indexed.twoCoefs` (ver A4).
+- Los casos de estudio (`src/casos/`, códigos C1…) son páginas largas, no `Level`: se registran en `CASOS`. Su análisis es una función pura (testeable) que la página corre en un Web Worker; los números viven en su `ciudad.ts`/datos y la simulación usa semillas fijas.
 - Niveles con varias versiones usan una plantilla (ver `src/levels/asignacion/`); cada versión nueva tiene que pasar los tests pedagógicos genéricos.
 - Las escenas son `SceneSpec` (`create` + `viewSize`) para poder renderizarlas también como miniatura.
 - Estilo visual minimalista: paleta en `src/styles.css` (`:root`) y `PALETTE` en `src/scene/IsoCanvas.tsx`.

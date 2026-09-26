@@ -39,6 +39,7 @@ src/
     geometry.ts           Región factible 2D (método gráfico)
     benders.ts            Descomposición de Benders: maestro, subproblema, cortes por dualidad, cotas
     ramificacion.ts       Branch and bound y cortes de Gomory en 2 variables (LP exacto por vértices, tableau)
+    ambulancias.ts        Caso C1: simulación con semilla, flujo de costo mínimo por día, SAA y validación
     estocastico.ts        Benders estocástico (L-shaped): escenarios, multi-corte vs. corte único, VSS y EVPI
     columnas.ts           Generación de columnas (corte de bobinas): maestro, pricing-mochila, cota de Farley
     pareto.ts             Dos objetivos: frontera exacta por ε-restricción y puntos soportados
@@ -101,6 +102,14 @@ src/
       EstocasticoAuto.tsx Resultado: plan estocástico vs. promedio vs. peor año, VSS, EVPI, multi vs. único
       Scene.ts            Mapa con plantas, campos, silos bolsa y el reparto esperado
       acopio.ts           Variante: cooperativa agrícola con año lluvioso, normal y sequía
+  casos/                  Casos de estudio: páginas que se leen scrolleando (no son niveles)
+    index.ts              Registro de casos (título, página, miniatura)
+    ambulancias/          C1: bases de ambulancias con Montecarlo + SAA
+      ciudad.ts           Datos de la ciudad, semillas y tamaños del análisis
+      analisis.ts         Análisis completo (puro): planes diarios, voto, promedio, SAA, validación, tamaños
+      worker.ts           Corre el análisis en un Web Worker con progreso
+      CasoAmbulancias.tsx La página, sección por sección
+      Mapa.tsx, graficos.tsx  Mapa de la ciudad y gráficos SVG del caso
   config.ts               Funcionalidades en prueba (p. ej. botón "Ver modelo correcto")
   scene/IsoCanvas.tsx     Lienzo Three.js isométrico reutilizable + primitivas (box, cylinder, pipe)
   scene/thumbnail.ts      Render único de una escena a imagen (miniaturas del menú)

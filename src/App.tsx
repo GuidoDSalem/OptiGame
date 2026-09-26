@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { CASOS } from './casos';
 import { LEVELS } from './levels';
 import type { Level } from './levels/types';
 import { LevelThumb } from './ui/components/LevelThumb';
@@ -62,10 +63,12 @@ function LevelCard({ versions, onOpen }: { versions: Level[]; onOpen(id: string)
 export function App() {
   const [current, setCurrent] = useState<string | null>(null);
   const level = LEVELS.find((l) => l.id === current);
+  const caso = CASOS.find((c) => c.id === current);
   const groups = groupByNumber(LEVELS.filter((l) => l.seccion !== 'avanzada'));
   const avanzados = groupByNumber(LEVELS.filter((l) => l.seccion === 'avanzada'));
 
   if (level) return <LevelView key={level.id} level={level} onExit={() => setCurrent(null)} />;
+  if (caso) return <caso.Pagina onExit={() => setCurrent(null)} />;
 
   return (
     <div className="home">
@@ -99,6 +102,36 @@ export function App() {
                 <span className="eyebrow">Avanzado · {u.codigo} · próximamente</span>
                 <strong>{u.client}</strong>
                 <span className="muted">{u.technique}</span>
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="advanced casos">
+        <h2>Casos de estudio</h2>
+        <p className="muted">
+          Un análisis completo contado de principio a fin, para leer scrolleando: de la situación a la recomendación,
+          con simulación, gráficos y estadística.
+        </p>
+        <div className="cards">
+          {CASOS.map((c) => (
+            <div
+              key={c.id}
+              className="card"
+              role="button"
+              tabIndex={0}
+              onClick={() => setCurrent(c.id)}
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), setCurrent(c.id))}
+            >
+              <div className="thumb">
+                <c.Miniatura />
+              </div>
+              <span className="card-text">
+                <span className="eyebrow">Caso de estudio · {c.codigo}</span>
+                <strong>{c.title}</strong>
+                <span>{c.client}</span>
+                <span className="muted">{c.technique}</span>
               </span>
             </div>
           ))}

@@ -334,3 +334,95 @@ table.data.rounds td.cut { font-family: ui-monospace, SFMono-Regular, Menlo, mon
 .advanced { margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--line); }
 .advanced h2 { font-size: 1.3rem; }
 .advanced .card:not(.locked) { border-color: var(--ink); }
+
+/* ---------- Casos de estudio (página que se lee scrolleando) ---------- */
+.caso { max-width: 780px; margin: 0 auto; padding: 32px 16px 96px; }
+.caso .volver { margin-bottom: 24px; }
+.caso p, .caso li { font-size: 1.02rem; }
+.caso .portada { padding: 24px 0 48px; }
+.caso .portada h1 { font-size: 2.4rem; margin: 8px 0 12px; }
+.caso .paso { padding: 40px 0; border-top: 1px solid var(--line); opacity: 0.25; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
+.caso .paso.visto { opacity: 1; transform: none; }
+.caso .paso h2 { display: flex; align-items: baseline; gap: 12px; font-size: 1.6rem; margin-bottom: 0.8em; }
+.caso .paso h2 .num { font-size: 0.9rem; color: var(--accent); font-weight: 700; border: 1.5px solid var(--accent); border-radius: 999px; min-width: 1.9em; height: 1.9em; display: inline-grid; place-items: center; }
+.caso .dos-columnas { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; align-items: start; margin: 16px 0; }
+@media (max-width: 700px) { .caso .dos-columnas { grid-template-columns: 1fr; } .caso .portada h1 { font-size: 1.8rem; } }
+.caso .tabla-scroll { overflow-x: auto; }
+.caso table.decision td { white-space: nowrap; }
+.caso table.decision th { vertical-align: bottom; }
+.caso .memo { border: 1.5px solid var(--ink); border-radius: var(--radius); padding: 16px 20px; background: var(--surface); margin-top: 20px; }
+.caso .memo p { margin: 0.5em 0; }
+.caso figure { margin: 0; }
+
+.mapa { display: block; border-radius: 10px; }
+.mapa .fondo { fill: var(--surface); stroke: var(--line); }
+.mapa .rio { fill: #cfe0f7; }
+.mapa .calle { stroke: #efefea; stroke-width: 1; }
+.mapa .barrio { fill: #ecece6; }
+.mapa .nombre-barrio { font-size: 11px; fill: var(--muted); }
+.mapa .asignacion { stroke: var(--accent); stroke-opacity: 0.45; stroke-linecap: round; }
+.mapa .llamada { fill: var(--bad); fill-opacity: 0.8; }
+.mapa .llamadas.animar .llamada { animation: aparecer 0.35s ease-out both; }
+@keyframes aparecer { from { opacity: 0; transform: scale(3); transform-box: fill-box; transform-origin: center; } to { opacity: 1; transform: scale(1); transform-box: fill-box; transform-origin: center; } }
+.mapa .privada circle { fill: var(--bad); }
+.mapa .privada text { font-size: 10px; fill: #fff; font-weight: 700; }
+.mapa .base rect { stroke-width: 2; }
+.mapa .base.abierta rect { fill: var(--ink); stroke: var(--ink); }
+.mapa .base.abierta .cruz { stroke: #fff; stroke-width: 2; }
+.mapa .base.cerrada rect { fill: var(--surface); stroke: var(--muted); stroke-dasharray: 3 2; }
+.mapa .base.cerrada .cruz { stroke: var(--muted); stroke-width: 1.5; }
+.mapa .base text { font-size: 10.5px; fill: var(--ink); font-weight: 600; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; }
+.mapa .base .anillo { fill: none; stroke: var(--warn); stroke-width: 3; }
+.mapa .escala line { stroke: var(--ink); stroke-width: 2; }
+.mapa .escala text { font-size: 10px; fill: var(--muted); }
+.mapa.compacto .base.cerrada rect { stroke-dasharray: none; stroke-width: 1; }
+.thumb .mapa { width: 100%; height: 100%; }
+
+.caso .dia-simulado { display: grid; grid-template-columns: 1fr 180px; gap: 20px; align-items: center; margin-top: 16px; }
+@media (max-width: 600px) { .caso .dia-simulado { grid-template-columns: 1fr; } }
+.caso .dia-info .big { font-size: 3rem; font-weight: 700; margin: 0; line-height: 1; }
+.caso .tag { display: inline-block; font-size: 0.78rem; padding: 2px 8px; border-radius: 999px; background: var(--bg); border: 1px solid var(--line); margin-right: 4px; }
+.caso .tag.critico { color: var(--bad); border-color: var(--bad); }
+.caso .tag.evento { color: var(--warn); border-color: var(--warn); }
+.caso .mapitas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 16px 0; }
+.caso .mapitas.cuatro { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 600px) { .caso .mapitas, .caso .mapitas.cuatro { grid-template-columns: repeat(2, 1fr); } }
+.caso .mapitas figure { display: flex; flex-direction: column; gap: 4px; }
+.caso .mapitas.cuatro figure { cursor: pointer; padding: 6px; border-radius: 10px; border: 1px solid transparent; }
+.caso .mapitas.cuatro figure.sel { border-color: var(--ink); background: var(--surface); }
+.caso .mapitas figcaption { display: flex; flex-direction: column; font-size: 0.85rem; }
+.caso .mapitas figcaption.critico { color: var(--bad); }
+.caso .mapitas figcaption.evento { color: var(--warn); }
+
+.grafico { display: block; margin: 8px 0; }
+.grafico .eje { stroke: var(--muted); }
+.grafico .grilla { stroke: var(--line); }
+.grafico .tick, .grafico .etiqueta, .grafico .valor, .grafico .marca { font-size: 11px; fill: var(--muted); }
+.grafico .etiqueta { fill: var(--ink); font-size: 12px; }
+.grafico .dia.normal { fill: var(--accent); }
+.grafico .dia.critico { fill: var(--bad); }
+.grafico .dia.evento { fill: var(--warn); }
+.grafico .dia.sel { stroke: var(--ink); stroke-width: 2.5; }
+.leyenda-caso { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 0.85rem; color: var(--muted); margin: 4px 0 12px; }
+.leyenda-caso i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: -1px; }
+.leyenda-caso i.normal { background: var(--accent); }
+.leyenda-caso i.critico { background: var(--bad); }
+.leyenda-caso i.evento { background: var(--warn); }
+.leyenda-caso i.prometido { background: #8db6ef; }
+.leyenda-caso i.real { background: var(--ink); }
+.barras .barra.gana { fill: var(--ink); }
+.barras .barra.pierde { fill: var(--muted); fill-opacity: 0.5; }
+.barras .umbral { stroke: var(--bad); stroke-dasharray: 4 3; }
+.histos .titulo-serie { font-size: 12px; font-weight: 600; fill: var(--ink); }
+.histos .bin { fill: var(--muted); fill-opacity: 0.55; }
+.histos .saa .bin { fill: var(--accent); fill-opacity: 0.8; }
+.histos .media { stroke: var(--ink); stroke-width: 2; }
+.histos .p95 { stroke: var(--bad); stroke-width: 1.5; stroke-dasharray: 3 2; }
+.curva .referencia { stroke: var(--ok); stroke-dasharray: 5 3; }
+.curva .prometido { fill: #8db6ef; }
+.curva .real { fill: var(--ink); fill-opacity: 0.6; }
+.curva .linea-prometido { fill: none; stroke: var(--accent); stroke-width: 2; }
+.curva .linea-real { fill: none; stroke: var(--ink); stroke-width: 2; }
+.progreso-caso .barra { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.progreso-caso .barra div { height: 100%; background: var(--accent); transition: width 0.2s; }
+.casos .card { border-color: var(--accent); }
