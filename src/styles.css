@@ -291,6 +291,45 @@ table.data.rounds td.cut { font-family: ui-monospace, SFMono-Regular, Menlo, mon
 .columnas .nowrap { white-space: nowrap; }
 .columnas .note .actions { margin: 8px 0 0; }
 
+/* Panel "dentro del solver" */
+.solver-tabs { display: flex; gap: 6px; margin: 4px 0 12px; }
+.solver-tabs button { border-radius: 999px; font-size: 0.88rem; color: var(--muted); }
+.solver-tabs button.on { color: var(--ink); border-color: var(--ink); background: var(--accent-soft); }
+.solver-panel .bounds { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 10px 0 4px; font-size: 0.92rem; }
+.solver-panel .mono, .cortes-lista .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.8rem; }
+.solver-panel table.tableau td { padding-top: 4px; padding-bottom: 4px; }
+.solver-panel .derivacion ol { margin: 4px 0 8px; padding-left: 1.4em; }
+.poliedro .grid line { stroke: var(--line); }
+.poliedro .grid text, .poliedro .axis { font-size: 10px; fill: var(--muted); }
+.poliedro .region.base { fill: var(--accent-soft); }
+.poliedro .region.cortada { fill: var(--accent); fill-opacity: 0.22; }
+.poliedro .region.hoja { fill: var(--accent); fill-opacity: 0.12; }
+.poliedro .region.nodo { fill: var(--accent); fill-opacity: 0.35; stroke: var(--accent); stroke-width: 1.5; }
+.poliedro .restr { stroke: var(--ink); stroke-width: 1.2; }
+.poliedro .corte { stroke: var(--bad); stroke-width: 1.5; stroke-dasharray: 5 3; }
+.poliedro .pt.fuera { fill: var(--muted); }
+.poliedro .pt.factible { fill: var(--ink); }
+.poliedro .pt.incumbente { fill: var(--ok); }
+.poliedro .pt.elegido { stroke: var(--ink); stroke-width: 2; }
+.poliedro .pt.elegido:not(.incumbente) { fill: none; }
+.poliedro .lp circle { fill: var(--surface); stroke: var(--bad); stroke-width: 2; }
+.poliedro .lp line { stroke: var(--bad); stroke-width: 1.6; }
+.arbol-wrap { overflow-x: auto; margin: 10px 0; }
+.arbol .edge line { stroke: var(--muted); }
+.arbol .edge text { font-size: 10px; fill: var(--ink); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.arbol .nodo rect { fill: var(--surface); stroke: var(--line); stroke-width: 1.2; }
+.arbol .nodo .z { font-size: 11px; font-weight: 600; fill: var(--ink); }
+.arbol .nodo .xy { font-size: 10px; fill: var(--muted); }
+.arbol .nodo .tag { font-size: 9.5px; fill: var(--muted); }
+.arbol .nodo.abierto rect { stroke: var(--accent); stroke-width: 2; }
+.arbol .nodo.sel rect { fill: var(--accent-soft); stroke-width: 2.5; }
+.arbol .nodo.infactible rect { stroke-dasharray: 4 3; }
+.arbol .nodo.infactible .tag { fill: var(--bad); }
+.arbol .nodo.entero rect { stroke: var(--ok); stroke-width: 1.6; }
+.arbol .nodo.inc rect { fill: var(--ok); fill-opacity: 0.15; stroke-width: 2.5; }
+.arbol .nodo.inc .tag { fill: var(--ok); font-weight: 600; }
+.arbol .nodo.podado { opacity: 0.55; }
+
 /* Sección de técnicas avanzadas en el menú */
 .advanced { margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--line); }
 .advanced h2 { font-size: 1.3rem; }

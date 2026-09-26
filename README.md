@@ -38,6 +38,7 @@ src/
     score.ts              Estrellas y distancia al óptimo
     geometry.ts           Región factible 2D (método gráfico)
     benders.ts            Descomposición de Benders: maestro, subproblema, cortes por dualidad, cotas
+    ramificacion.ts       Branch and bound y cortes de Gomory en 2 variables (LP exacto por vértices, tableau)
     columnas.ts           Generación de columnas (corte de bobinas): maestro, pricing-mochila, cota de Farley
     pareto.ts             Dos objetivos: frontera exacta por ε-restricción y puntos soportados
     routing.ts            Ruteo: circuitos, heurísticas, cortes de subtour, formulación MTZ
@@ -74,6 +75,14 @@ src/
       ParetoPanel.tsx     Frontera de Pareto (ε-restricción) y puntos que la suma ponderada no ve
       Scene.ts            Lotes con edificios según los proyectos elegidos
       nueva-pampa.ts      Variante: intendencia con compromiso ambiental
+    solver/               Avanzado A1 como PLANTILLA: "dentro del solver" (branch and bound, planos de corte)
+      template.ts         crearNivelSolver(variante): modelo entero de 2 productos, teoría, mundo
+      SolverPanel.tsx     Intento manual: el jugador ramifica (árbol) o corta (tableau → corte de Gomory)
+      SolverAuto.tsx      Resultado: relajación vs. redondeo vs. entero, árbol y cortes automáticos
+      Poliedro.tsx        Gráfico de la región con la grilla de puntos enteros, nodos y cortes
+      ArbolView.tsx       Dibujo del árbol de branch and bound
+      Scene.ts            La región como placa y los puntos enteros como clavijas
+      carpinteria.ts      Variante: taller de mesas y bibliotecas
     columnas/             Avanzado A2 como PLANTILLA: corte de bobinas por generación de columnas
       template.ts         crearNivelColumnas(variante): modelo de patrones, teoría, mundo
       ColumnasPanel.tsx   Intento manual: el jugador hace de pricing (precios sombra, patrones, cotas)
