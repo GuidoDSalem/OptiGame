@@ -54,6 +54,11 @@ export interface SceneProps {
 export interface Level {
   id: string;
   number: number;
+  /**
+   * Nombre de la versión cuando un mismo nivel (misma técnica y teoría) tiene varias
+   * situaciones, p. ej. "Escuela" y "Hospital". Los niveles con el mismo número se agrupan.
+   */
+  variant?: string;
   title: string;
   client: string;
   /** Técnica que enseña el nivel. */

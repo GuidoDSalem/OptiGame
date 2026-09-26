@@ -45,7 +45,11 @@ src/
       Scene.tsx           Escena isométrica
     campana-marketing/    Nivel 2: PL con 4 variables, precios sombra y costos reducidos
     transporte-lacteos/   Nivel 3: problema de transporte, modelado con índices
-    escuela-aulas/        Nivel 4: asignación con variables binarias, relajación lineal vs. MIP
+    asignacion/           Nivel 4 como PLANTILLA: asignación con binarias, relajación vs. MIP
+      template.ts         crearNivelAsignacion(variante): modelo, teoría, pistas y mundo
+      Scene.ts            Escena genérica (estilo "aula" o "quirofano")
+      escuela.ts          Variante: cursos → aulas
+      hospital.ts         Variante: cirugías → quirófanos (compatibilidad por nivel de complejidad)
   config.ts               Funcionalidades en prueba (p. ej. botón "Ver modelo correcto")
   scene/IsoCanvas.tsx     Lienzo Three.js isométrico reutilizable + primitivas (box, cylinder, pipe)
   scene/thumbnail.ts      Render único de una escena a imagen (miniaturas del menú)
@@ -66,6 +70,19 @@ Cada nivel define dos cosas separadas:
 
 La solución del jugador siempre se prueba contra el mundo, no contra su propio modelo. Así el juego
 puede decir "tu modelo es coherente, pero te olvidaste de la salinidad y el agua sale salada".
+
+## Versiones de un nivel (plantillas)
+
+Un nivel puede tener varias **versiones**: misma técnica, teoría y modelo, distinta situación. El
+nivel 4 es el ejemplo: `crearNivelAsignacion(variante)` arma todo a partir de datos + vocabulario
+(`"curso"/"aula"`, `"cirugía"/"quirófano"`) + historia + estilo de escena. En el menú, los niveles
+con el mismo `number` se agrupan en una tarjeta con botones para elegir la versión.
+
+Para agregar una versión: crear `src/levels/asignacion/<nueva>.ts` y sumarla a
+`VARIANTES_ASIGNACION`. El test `tests/asignacion.test.ts` corre sobre todas las versiones y
+verifica que conserven las trampas pedagógicas (la relajación "parte" ítems, sacar cada
+restricción rompe algo en el mundo real, la estrategia "a ojo" no es óptima). Si los datos nuevos
+no pasan ese test, la versión no enseña lo mismo.
 
 ## Agregar un nivel
 

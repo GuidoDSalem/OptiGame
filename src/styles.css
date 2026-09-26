@@ -210,3 +210,11 @@ button.cell-toggle {
 }
 button.cell-toggle.on { background: var(--ink); border-color: var(--ink); }
 table.matrix td:has(> button.cell-toggle) { text-align: center; }
+
+/* Tarjeta con varias versiones del mismo nivel */
+.card[role='button'] { cursor: pointer; }
+.card[role='button']:hover { border-color: var(--ink); }
+.card[role='button']:focus-visible { outline: 2px solid var(--accent); }
+.versions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.versions button { font-size: 0.78rem; padding: 0.15em 0.7em; border-radius: 999px; color: var(--muted); }
+.versions button.on { color: var(--ink); border-color: var(--ink); }
