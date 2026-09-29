@@ -1,14 +1,16 @@
-import { costoPorAnio, rangoEstable, type Evaluacion, type Medidas, type PuntoSensibilidad } from '../../engine/estocastico';
+import { costoPorAnio, type Evaluacion, type Medidas, type Sensibilidad } from '../../engine/estocastico';
 import { fmt } from './EstocasticoPanel';
 import type { VarianteEstocastica } from './template';
 
 const pct = (p: number) => `${Math.round(p * 100)}%`;
+/** Porcentaje con un decimal, para umbrales. */
+const pct1 = (p: number) => `${(Math.round(p * 1000) / 10).toLocaleString('es-AR')}%`;
 const mismo = (a: string[], b: string[]) => a.length === b.length && a.every((x) => b.includes(x));
 
 interface Props {
   v: VarianteEstocastica;
   m: Medidas;
-  sens: { escenario: string; puntos: PuntoSensibilidad[] };
+  sens: Sensibilidad;
 }
 
 /** Cierre del nivel: qué significa el plan estocástico, cómo se lee y cómo se usa. */
@@ -27,8 +29,9 @@ export function ConclusionEstocastico({ v, m, sens }: Props) {
   const nuncaSolas = rp.abiertos.filter((d) => m.wsPlanes.every((w) => !w.abiertos.includes(d)));
 
   const exigente = esc(sens.escenario);
-  const rango = rangoEstable(sens.puntos, exigente.prob);
-  const enElBorde = Math.abs(rango.hasta - exigente.prob) < 1e-9 || Math.abs(rango.desde - exigente.prob) < 1e-9;
+  const rango = sens;
+  // A menos de dos puntos de un umbral, la recomendación está en el borde.
+  const enElBorde = (rango.despues && rango.hasta - rango.base < 0.02) || (rango.antes && rango.base - rango.desde < 0.02);
 
   return (
     <div className="conclusion">
@@ -161,13 +164,13 @@ export function ConclusionEstocastico({ v, m, sens }: Props) {
         El resultado depende de las probabilidades, que son estimaciones. Con estos datos, la recomendación se mantiene
         mientras la probabilidad de {exigente.label.toLowerCase()} esté entre{' '}
         <strong>
-          {pct(rango.desde)} y {pct(rango.hasta)}
+          {pct1(rango.desde)} y {pct1(rango.hasta)}
         </strong>{' '}
         (hoy es {pct(exigente.prob)}).
-        {rango.antes && ` Si bajara a ${pct(rango.antes.p)}, convendría ${lista(rango.antes.abiertos)}.`}
-        {rango.despues && ` Si subiera a ${pct(rango.despues.p)}, convendría ${lista(rango.despues.abiertos)}.`}{' '}
+        {rango.antes && ` Si bajara de ${pct1(rango.desde)}, convendría ${lista(rango.antes)}.`}
+        {rango.despues && ` Si pasara de ${pct1(rango.hasta)}, convendría ${lista(rango.despues)}.`}{' '}
         {enElBorde
-          ? `La estimación actual está justo en el borde: con apenas un punto de diferencia la recomendación cambia. Del lado bueno: justo en el borde los dos planes cuestan lo mismo en promedio, así que equivocarse por poco sale barato. Aun así, antes de firmar vale la pena revisar bien esa probabilidad (con datos históricos o un pronóstico estacional) y mirar también el riesgo del punto 4.`
+          ? `La estimación actual está muy cerca del borde: con menos de dos puntos de diferencia la recomendación cambia. Del lado bueno: en el umbral los dos planes cuestan lo mismo en promedio, así que equivocarse por poco sale barato. Aun así, antes de firmar vale la pena revisar bien esa probabilidad (con datos históricos o un pronóstico estacional) y mirar también el riesgo del punto 4.`
           : rango.hasta - rango.desde < 0.15 + 1e-9
             ? 'Es un margen chico: vale la pena revisar bien esa probabilidad (con datos históricos o un pronóstico estacional) antes de firmar.'
             : 'Es un margen amplio: la decisión no depende de afinar mucho esa probabilidad.'}
