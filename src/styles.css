@@ -291,6 +291,28 @@ table.data.rounds td.cut { font-family: ui-monospace, SFMono-Regular, Menlo, mon
 .columnas .pricing .n { display: inline-block; min-width: 1.6em; text-align: center; font-weight: 600; }
 .columnas .nowrap { white-space: nowrap; }
 .columnas .note .actions { margin: 8px 0 0; }
+.plan-corte .plan-patrones { display: flex; flex-direction: column; gap: 10px; margin: 6px 0 4px; }
+.plan-patron { display: grid; grid-template-columns: 1.8em minmax(0, 3fr) minmax(0, 2fr); gap: 10px; align-items: center; }
+.plan-letra { display: inline-flex; align-items: center; justify-content: center; width: 1.6em; height: 1.6em; border-radius: 50%; background: var(--ink); color: var(--surface); font-size: 0.78rem; font-weight: 600; }
+.plan-barra .bobina-bar { margin: 0 0 2px; }
+.plan-veces { font-size: 0.9rem; }
+.plan-rollos { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 3px; }
+.plan-rollos i { width: 9px; height: 9px; border-radius: 50%; border: 2px solid var(--muted); background: var(--surface); }
+.plan-demanda { display: flex; flex-direction: column; gap: 8px; margin: 6px 0 4px; }
+.plan-pedido { display: grid; grid-template-columns: 8.5em minmax(0, 1fr) 6.5em; gap: 10px; align-items: center; font-size: 0.85rem; }
+.plan-pista { position: relative; height: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; }
+.plan-aportes { display: flex; height: 100%; border-radius: 3px; overflow: hidden; }
+.plan-aportes span { display: flex; align-items: center; justify-content: center; min-width: 0; overflow: hidden; white-space: nowrap; font-size: 0.7rem; color: #fff; border-right: 2px solid var(--surface); }
+.plan-sobra { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(45deg, transparent 0 4px, rgba(255, 255, 255, 0.55) 4px 7px); pointer-events: none; }
+.plan-meta { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; background: var(--ink); }
+.plan-cuenta { font-variant-numeric: tabular-nums; }
+.plan-cuenta.falta { color: var(--bad); }
+@media (max-width: 600px) {
+  .plan-patron { grid-template-columns: 1.8em minmax(0, 1fr); }
+  .plan-veces { grid-column: 2; }
+  .plan-pedido { grid-template-columns: 1fr auto; }
+  .plan-pista { grid-column: 1 / -1; grid-row: 2; }
+}
 .repro-columnas { margin: 8px 0 0; }
 .repro-controles { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .repro-controles .primary { margin-top: 0; min-width: 8.5em; }

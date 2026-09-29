@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import {
-  describir,
   enteroConPatrones,
   trazaColumnas,
   patronDeVariable,
@@ -10,7 +9,7 @@ import {
   type SolucionEntera,
 } from '../../engine/columnas';
 import type { ResultsExtraProps } from '../types';
-import { PatronBar } from './PatronBar';
+import { PlanDeCorte } from './PlanDeCorte';
 import { ReproductorColumnas } from './ReproductorColumnas';
 import type { VarianteColumnas } from './template';
 
@@ -40,25 +39,10 @@ export function crearColumnasAutomatico(v: VarianteColumnas, P: ProblemaCorte) {
       <div className="pareto-panel columnas">
         {result.status === 'optimal' && usados.length > 0 && (
           <>
-            <h4>Los patrones que eligió el solver</h4>
+            <PlanDeCorte P={P} values={result.values} />
             <p className="muted small">
-              Tu modelo tenía {model.variables.length} columnas (una por patrón); se usan {usados.length}.
+              Tu modelo tenía {model.variables.length} columnas (una por patrón); la solución usa {usados.length}.
             </p>
-            <table className="data rounds">
-              <tbody>
-                {usados.map(({ p, n }, i) => (
-                  <tr key={i}>
-                    <td className="r">
-                      <strong>{fmt(n)}</strong> ×
-                    </td>
-                    <td>
-                      <PatronBar P={P} p={p!} compact />
-                      <span className="cut">{describir(P, p!)}</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </>
         )}
 
