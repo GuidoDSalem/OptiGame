@@ -13,6 +13,9 @@ import { PlanDeCorte } from './PlanDeCorte';
 import { ReproductorColumnas } from './ReproductorColumnas';
 import type { VarianteColumnas } from './template';
 
+/** Implementación de referencia en Python (Gurobi) del mismo problema. */
+const REPO_EJEMPLO = 'https://github.com/demirayonur/Column-Generation/blob/main/ColumnGeneration_CuttingStockProblem.ipynb';
+
 const fmt = (n: number) => n.toLocaleString('es-AR', { maximumFractionDigits: 3 });
 
 /** Panel del resultado: los patrones que eligió el solver y la generación de columnas automática. */
@@ -90,6 +93,18 @@ export function crearColumnasAutomatico(v: VarianteColumnas, P: ProblemaCorte) {
             )}
           </>
         )}
+
+        <div className="note">
+          <p>
+            Si te interesa ver cómo se implementa en código, hay un repo muy bueno de demirayonur en GitHub:{' '}
+            <a href={REPO_EJEMPLO} target="_blank" rel="noopener noreferrer">
+              Column-Generation
+            </a>
+            . Es una notebook de Python con Gurobi que resuelve este mismo problema de corte: primero con el modelo de
+            Kantorovich (una variable por bobina y pedido) y después con generación de columnas, con el maestro
+            restringido y la mochila del pricing escritos paso a paso.
+          </p>
+        </div>
       </div>
     );
   };
