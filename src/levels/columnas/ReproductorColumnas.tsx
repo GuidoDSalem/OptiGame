@@ -202,6 +202,34 @@ export function ReproductorColumnas({ P, traza, entero }: Props) {
         primera={0}
         dominio={[Math.min(...todos), Math.max(...todos)]}
         marca={k}
+        detalle={(j) => {
+          // Sólo lo que ya se vio en la reproducción.
+          if (j > k) return null;
+          const t = traza[j];
+          const ronda = j > 0 ? t.rondas[j - 1] : null;
+          const conCota = j < k || ya('pricing');
+          return (
+            <>
+              <strong>{j === 0 ? 'Arranque' : `Ronda ${j}`}</strong>
+              {ronda ? (
+                <>
+                  : entra <Tex tex={nombre(t.patrones.length - 1)} /> = {describir(P, ronda.patron)}
+                  <PatronBar P={P} p={ronda.patron} compact />
+                  <span className="muted">costo reducido al entrar {fmt(ronda.costoReducido)}</span>
+                  <br />
+                </>
+              ) : (
+                <>
+                  : {t.patrones.length} patrones obvios
+                  <br />
+                </>
+              )}
+              Maestro {fmt(t.maestro.objetivo)}
+              {j > 0 && <> ({fmt(t.maestro.objetivo - traza[j - 1].maestro.objetivo)})</>}
+              {conCota && <> · cota {fmt(t.cotaInferior)}</>} · {t.patrones.length} patrones
+            </>
+          );
+        }}
         series={[
           { label: 'maestro (relajación)', values: lps, className: 'cota-superior' },
           { label: 'cota inferior (Farley)', values: cotas, className: 'cota-inferior' },

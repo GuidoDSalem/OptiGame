@@ -9,6 +9,8 @@ import {
   type PuntoSensibilidad,
 } from '../../engine/estocastico';
 import { ConvergenceChart } from '../../ui/components/ConvergenceChart';
+import type { Corte } from '../../engine/benders';
+import { Tex } from '../../ui/components/Tex';
 import type { ResultsExtraProps } from '../types';
 import { ConclusionEstocastico } from './ConclusionEstocastico';
 import { TablaEscenarios, fmt, recortar } from './EstocasticoPanel';
@@ -26,6 +28,13 @@ export function crearEstocasticoAutomatico(v: VarianteEstocastica, P: ProblemaEs
   let cache: Promise<Datos> | null = null;
   const short = (id: string) => v.plantas.find((d) => d.id === id)?.short ?? id;
   const lista = (ids: string[]) => ids.map(short).join(', ') || 'ninguna';
+  const tx = (n: number) => fmt(n).replace(/\./g, '').replace(',', '{,}');
+  const corteTex = (c: Corte, escenario: string) => {
+    const partes = Object.entries(c.coefs)
+      .filter(([, x]) => Math.abs(x) > 1e-6)
+      .map(([d, x]) => `${x < 0 ? '-' : '+'} ${tx(Math.abs(x))}\\, y_{\\text{${short(d).replace(/^P\.\s*/, '')}}}`);
+    return `\\theta_{\\text{${escenario}}} \\geq ${tx(c.constante)} ${partes.join(' ')}`;
+  };
 
   return function EstocasticoAutomatico({ result }: ResultsExtraProps) {
     const [d, setD] = useState<Datos | null>(null);
@@ -102,6 +111,35 @@ export function crearEstocasticoAutomatico(v: VarianteEstocastica, P: ProblemaEs
         <h4>Benders con escenarios</h4>
         <ConvergenceChart
           yLabel={`Costo esperado (${v.moneda})`}
+          detalle={(j) => {
+            const r = multi.rondas[j];
+            const u = unico.rondas[j];
+            if (!r && !u) return null;
+            if (!r)
+              return (
+                <>
+                  <strong>Ronda {j + 1}</strong>: el multi-corte ya había terminado en la ronda {multi.rondas.length}.
+                  <br />
+                  Con corte único alquila {lista(u.abiertos)}: costo esperado {fmt(u.total)} · cota {fmt(u.cotaInferior)}
+                </>
+              );
+            return (
+              <>
+                <strong>Ronda {j + 1}</strong>: alquila {lista(r.abiertos)}
+                <br />
+                Costo esperado {fmt(r.total)} · mejor {fmt(r.mejor)} · cota {fmt(r.cotaInferior)}
+                {u && <span className="muted"> (corte único: {fmt(u.cotaInferior)})</span>}
+                <div className="tip-corte">
+                  <span className="muted">Un corte por escenario:</span>
+                  {multi.cortes[j].map((c, k) => (
+                    <div key={k}>
+                      <Tex tex={corteTex(c, v.escenarios[k].short)} />
+                    </div>
+                  ))}
+                </div>
+              </>
+            );
+          }}
           series={[
             { label: 'mejor plan', values: multi.rondas.map((r) => recortar(r.mejor, multi.mejor)), className: 'cota-superior' },
             { label: 'cota inferior (multi-corte)', values: multi.rondas.map((r) => r.cotaInferior), className: 'cota-inferior' },
