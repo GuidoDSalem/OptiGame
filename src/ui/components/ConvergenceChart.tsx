@@ -8,13 +8,26 @@ const W = 380;
 const H = 200;
 const PAD = { l: 48, r: 12, t: 14, b: 30 };
 
+interface Props {
+  series: Serie[];
+  yLabel: string;
+  /** Rondas del eje x aunque las series todavía no las tengan (para reproducir paso a paso). */
+  rondas?: number;
+  /** Rango fijo del eje y: [mínimo, máximo] de los valores que van a aparecer. */
+  dominio?: [number, number];
+  /** Ronda que se está mirando: se marca con una línea vertical. */
+  marca?: number;
+  /** Número de la primera ronda en el eje (1 por defecto; 0 si la primera es el arranque). */
+  primera?: number;
+}
+
 /** Evolución de cotas por ronda (p. ej. cota inferior vs. mejor solución en Benders). */
-export function ConvergenceChart({ series, yLabel }: { series: Serie[]; yLabel: string }) {
-  const n = Math.max(1, ...series.map((s) => s.values.length));
+export function ConvergenceChart({ series, yLabel, rondas, dominio, marca, primera = 1 }: Props) {
+  const n = Math.max(1, rondas ?? 0, ...series.map((s) => s.values.length));
   const all = series.flatMap((s) => s.values.filter((v): v is number => v !== null && Number.isFinite(v)));
-  if (!all.length) return null;
-  const lo = Math.min(...all);
-  const hi = Math.max(...all);
+  if (!all.length && !dominio) return null;
+  const lo = dominio?.[0] ?? Math.min(...all);
+  const hi = dominio?.[1] ?? Math.max(...all);
   const pad = (hi - lo) * 0.08 || 1;
   const yMin = Math.max(0, lo - pad);
   const yMax = hi + pad;
@@ -35,9 +48,10 @@ export function ConvergenceChart({ series, yLabel }: { series: Serie[]; yLabel: 
         ))}
         {Array.from({ length: n }, (_, i) => (
           <text key={i} x={sx(i)} y={H - PAD.b + 14} textAnchor="middle">
-            {n <= 20 || i % 2 === 0 ? i + 1 : ''}
+            {n <= 20 || i % 2 === 0 ? i + primera : ''}
           </text>
         ))}
+        {marca !== undefined && <line className="marca" x1={sx(marca)} y1={PAD.t} x2={sx(marca)} y2={H - PAD.b} />}
         {series.map((s) => {
           const pts = s.values.map((v, i) => (v === null || !Number.isFinite(v) ? null : `${sx(i)},${sy(v)}`));
           const d = pts.filter(Boolean).map((p, i) => `${i ? 'L' : 'M'}${p}`).join(' ');

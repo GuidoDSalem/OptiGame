@@ -270,6 +270,7 @@ button.link.small { font-size: 0.82rem; }
 .convergence .cota-superior circle { fill: var(--ink); }
 .convergence .propuesta path { stroke: none; }
 .convergence .propuesta circle { fill: var(--muted); }
+.convergence .marca { stroke: var(--line); stroke-width: 6; opacity: 0.8; }
 .legend .dot.cota-inferior { background: var(--accent); }
 .legend .dot.cota-superior { background: var(--ink); }
 .legend .dot.propuesta { background: var(--muted); }
@@ -290,6 +291,22 @@ table.data.rounds td.cut { font-family: ui-monospace, SFMono-Regular, Menlo, mon
 .columnas .pricing .n { display: inline-block; min-width: 1.6em; text-align: center; font-weight: 600; }
 .columnas .nowrap { white-space: nowrap; }
 .columnas .note .actions { margin: 8px 0 0; }
+.repro-columnas { margin: 8px 0 0; }
+.repro-controles { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.repro-controles .primary { margin-top: 0; min-width: 8.5em; }
+.repro-controles input[type='range'] { flex: 1; min-width: 120px; }
+.repro-controles select { font: inherit; font-size: 0.85rem; padding: 0.35em 0.5em; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); }
+.repro-paso { margin: 10px 0 2px; font-size: 0.95rem; }
+.repro-texto { min-height: 5.2em; margin: 0 0 8px; }
+.repro-grid { display: grid; grid-template-columns: 3fr 2fr; gap: 16px; align-items: start; }
+@media (max-width: 720px) { .repro-grid { grid-template-columns: 1fr; } }
+.repro-grid h5 { font-size: 0.78rem; font-weight: 600; color: var(--muted); margin: 0 0 4px; }
+.repro-columnas tr.nuevo td:first-child, .repro-columnas tr.entrando td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.repro-columnas tr.entrando td { background: var(--accent-soft); }
+.repro-columnas .tag { font-size: 0.66rem; color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 0 5px; margin-left: 6px; vertical-align: 1px; }
+.repro-columnas td.oculto { color: var(--line); }
+.repro-mochila { margin-top: 10px; }
+.repro-columna { overflow-x: auto; }
 
 /* Panel "dentro del solver" */
 .solver-tabs { display: flex; gap: 6px; margin: 4px 0 12px; }

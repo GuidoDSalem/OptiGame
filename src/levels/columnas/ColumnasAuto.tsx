@@ -2,29 +2,32 @@ import { useEffect, useState } from 'react';
 import {
   describir,
   enteroConPatrones,
-  generacionDeColumnas,
+  trazaColumnas,
   patronDeVariable,
   redondeoHaciaArriba,
   type EstadoColumnas,
   type ProblemaCorte,
   type SolucionEntera,
 } from '../../engine/columnas';
-import { ConvergenceChart } from '../../ui/components/ConvergenceChart';
 import type { ResultsExtraProps } from '../types';
-import { serieCota, serieLp } from './ColumnasPanel';
 import { PatronBar } from './PatronBar';
+import { ReproductorColumnas } from './ReproductorColumnas';
 import type { VarianteColumnas } from './template';
 
 const fmt = (n: number) => n.toLocaleString('es-AR', { maximumFractionDigits: 3 });
 
 /** Panel del resultado: los patrones que eligió el solver y la generación de columnas automática. */
 export function crearColumnasAutomatico(v: VarianteColumnas, P: ProblemaCorte) {
-  let cache: Promise<{ e: EstadoColumnas; entero: SolucionEntera }> | null = null;
+  type Datos = { traza: EstadoColumnas[]; e: EstadoColumnas; entero: SolucionEntera };
+  let cache: Promise<Datos> | null = null;
 
   return function ColumnasAutomatico({ result, model }: ResultsExtraProps) {
-    const [datos, setDatos] = useState<{ e: EstadoColumnas; entero: SolucionEntera } | null>(null);
+    const [datos, setDatos] = useState<Datos | null>(null);
     useEffect(() => {
-      cache ??= generacionDeColumnas(P).then(async (e) => ({ e, entero: await enteroConPatrones(P, e.patrones) }));
+      cache ??= trazaColumnas(P).then(async (traza) => {
+        const e = traza[traza.length - 1];
+        return { traza, e, entero: await enteroConPatrones(P, e.patrones) };
+      });
       cache.then(setDatos);
     }, []);
 
@@ -64,18 +67,12 @@ export function crearColumnasAutomatico(v: VarianteColumnas, P: ProblemaCorte) {
           <p className="muted">Generando columnas…</p>
         ) : (
           <>
-            <ConvergenceChart
-              yLabel="Bobinas"
-              series={[
-                { label: 'maestro (relajación)', values: serieLp(datos.e), className: 'cota-superior' },
-                { label: 'cota inferior (Farley)', values: serieCota(datos.e), className: 'cota-inferior' },
-              ]}
-            />
             <p>
               Arrancando con {v.pedidos.length} patrones obvios, en <strong>{datos.e.rondas.length} rondas</strong> de
               pricing llegó a la relajación óptima con sólo <strong>{datos.e.patrones.length}</strong> patrones (de los{' '}
-              {model.variables.length} posibles).
+              {model.variables.length} posibles). Miralo paso a paso: reproducilo entero o avanzá de a un paso.
             </p>
+            <ReproductorColumnas P={P} traza={datos.traza} entero={datos.entero.bobinas} />
             <table className="data">
               <tbody>
                 <tr>

@@ -213,15 +213,37 @@ export async function paso(P: ProblemaCorte, e: EstadoColumnas, patron: Patron, 
   return { ok: true, estado: { ...provisorio, inicial: e.inicial, rondas: [...e.rondas, ronda] } };
 }
 
-/** Generación de columnas completa: siempre agrega el patrón que encuentra el pricing. */
-export async function generacionDeColumnas(P: ProblemaCorte, maxRondas = 100): Promise<EstadoColumnas> {
-  let e = await iniciarColumnas(P);
-  for (let k = 0; k < maxRondas && !convergio(e); k++) {
-    const r = await paso(P, e, e.sugerido.patron, 'pricing');
+/**
+ * Generación de columnas completa, guardando cada estado: el del arranque y uno por ronda.
+ * Siempre agrega el patrón que encuentra el pricing.
+ */
+export async function trazaColumnas(P: ProblemaCorte, maxRondas = 100): Promise<EstadoColumnas[]> {
+  const traza = [await iniciarColumnas(P)];
+  for (let k = 0; k < maxRondas && !convergio(traza[traza.length - 1]); k++) {
+    const r = await paso(P, traza[traza.length - 1], traza[traza.length - 1].sugerido.patron, 'pricing');
     if (!r.ok) break;
-    e = r.estado;
+    traza.push(r.estado);
   }
-  return e;
+  return traza;
+}
+
+export async function generacionDeColumnas(P: ProblemaCorte, maxRondas = 100): Promise<EstadoColumnas> {
+  const traza = await trazaColumnas(P, maxRondas);
+  return traza[traza.length - 1];
+}
+
+/**
+ * Los pasos que muestra la reproducción de una traza. En cada estado k: se resuelve el
+ * maestro, se leen sus precios sombra, el pricing busca el mejor patrón, y ese patrón entra
+ * (lo que lleva al estado k + 1) o, si no conviene, se termina.
+ */
+export type FaseColumnas = 'maestro' | 'precios' | 'pricing' | 'agrega' | 'fin';
+
+export function fasesDeLaTraza(traza: EstadoColumnas[]): { k: number; fase: FaseColumnas }[] {
+  return traza.flatMap((_, k) => {
+    const cierre: FaseColumnas = k < traza.length - 1 ? 'agrega' : 'fin';
+    return (['maestro', 'precios', 'pricing', cierre] as const).map((fase) => ({ k, fase }));
+  });
 }
 
 export interface SolucionEntera {
