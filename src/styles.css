@@ -24,6 +24,8 @@ h2 { font-size: 1.4rem; }
 h3 { font-size: 1.05rem; margin-top: 1.4em; }
 h4 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-top: 1.6em; }
 
+a { color: var(--accent); text-underline-offset: 2px; }
+
 button {
   font: inherit; border: 1px solid var(--line); background: var(--surface); color: var(--ink);
   padding: 0.5em 0.9em; border-radius: 8px; cursor: pointer;

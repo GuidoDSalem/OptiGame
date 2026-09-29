@@ -18,7 +18,7 @@ import {
 } from '../../engine/columnas';
 import { compileIndexed, term, type IndexedDraft, type IndexedSpec } from '../../engine/indexed';
 import type { Check, ContentBlock, Level } from '../types';
-import { crearColumnasAutomatico } from './ColumnasAuto';
+import { REPO_EJEMPLO, crearColumnasAutomatico } from './ColumnasAuto';
 import { crearPanelColumnas } from './ColumnasPanel';
 import { crearEscenaBobinas } from './Scene';
 
@@ -131,6 +131,11 @@ export function crearNivelColumnas(v: VarianteColumnas): Level {
     {
       type: 'p',
       text: 'Es la **hermana dual de Benders** (A3): allá se agregaban **filas** (cortes) al maestro; acá se agregan **columnas** (variables). Se usa en turnos de tripulaciones de aviones, ruteo de flotas y horarios de hospitales. Combinada con branch and bound se llama **branch and price**.',
+    },
+    { type: 'h', text: 'Para ver el código' },
+    {
+      type: 'p',
+      text: `Si te interesa ver cómo se implementa en código, hay un repo muy bueno de demirayonur en GitHub: [Column-Generation](${REPO_EJEMPLO}). Es una notebook de Python con Gurobi que resuelve este mismo problema de corte, primero con el modelo de Kantorovich y después con generación de columnas.`,
     },
   ];
 

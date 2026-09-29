@@ -14,7 +14,7 @@ import { ReproductorColumnas } from './ReproductorColumnas';
 import type { VarianteColumnas } from './template';
 
 /** Implementación de referencia en Python (Gurobi) del mismo problema. */
-const REPO_EJEMPLO = 'https://github.com/demirayonur/Column-Generation/blob/main/ColumnGeneration_CuttingStockProblem.ipynb';
+export const REPO_EJEMPLO = 'https://github.com/demirayonur/Column-Generation/blob/main/ColumnGeneration_CuttingStockProblem.ipynb';
 
 const fmt = (n: number) => n.toLocaleString('es-AR', { maximumFractionDigits: 3 });
 

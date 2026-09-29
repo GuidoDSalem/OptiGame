@@ -5,7 +5,7 @@ import { ReproductorBenders } from './ReproductorBenders';
 import type { VarianteBenders } from './template';
 
 /** Implementación de referencia en Julia (JuMP) de Benders, con cortes de optimalidad y de factibilidad. */
-const TUTORIAL_JUMP = 'https://jump.dev/JuMP.jl/stable/tutorials/algorithms/benders_decomposition/';
+export const TUTORIAL_JUMP = 'https://jump.dev/JuMP.jl/stable/tutorials/algorithms/benders_decomposition/';
 
 const fmt = (n: number) => n.toLocaleString('es-AR', { maximumFractionDigits: 1 });
 
