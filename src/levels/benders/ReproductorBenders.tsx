@@ -172,6 +172,27 @@ export function ReproductorBenders({ v, traza }: { v: VarianteBenders; traza: Ro
         rondas={traza.length}
         dominio={[Math.min(...todos), Math.max(...todos)]}
         marca={k}
+        detalle={(j) => {
+          // Sólo lo que ya se vio en la reproducción.
+          if (j > k || (j === k && !ya('subproblema'))) return null;
+          const x = traza[j];
+          const conCorte = j < k || ya('corte');
+          return (
+            <>
+              <strong>Ronda {j + 1}</strong>: abre {lista(x.ronda.abiertos)}
+              <br />
+              Real {fmt(x.ronda.total)} · mejor {fmt(x.ronda.mejor)}
+              {conCorte && <> · cota {fmt(x.ronda.cotaInferior)}</>}
+              {conCorte ? (
+                <div className="tip-corte">
+                  <span className="muted">Corte {j + 1}:</span> <Tex tex={corteTex(x.ronda.corte)} />
+                </div>
+              ) : (
+                <div className="muted">El corte se arma en el paso siguiente.</div>
+              )}
+            </>
+          );
+        }}
         series={[
           { label: 'propuesta del maestro', values: serie((x) => x.ronda.total, 'subproblema'), className: 'propuesta' },
           { label: 'mejor solución', values: serie((x) => x.ronda.mejor, 'subproblema'), className: 'cota-superior' },
