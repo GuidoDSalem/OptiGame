@@ -2,10 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { diagnose } from '../src/engine/diagnose';
 import {
   bendersEstocastico,
+  costoPorAnio,
   evaluar,
   medidas,
+  rangoEstable,
   resolverEscenario,
   resolverExtensivo,
+  sensibilidadPeor,
   valoresDe,
 } from '../src/engine/estocastico';
 import { compileIndexed, term, termProd, type IndexedDraft } from '../src/engine/indexed';
@@ -79,6 +82,35 @@ describe.each(nivelesEstocastico.map((level, i) => ({ level, v: VARIANTES_ESTOCA
       expect(new Set([clave(m.rp.abiertos), clave(m.eev.abiertos), clave(m.peor.abiertos)]).size).toBe(3);
       // El plan del promedio usa silo bolsa en el año lluvioso.
       expect(m.eev.escenarios.some((s) => s.faltante > 0)).toBe(true);
+    });
+
+    it('conclusión: el promedio pondera los años y la recomendación es una cobertura', async () => {
+      const m = await medidas(P);
+      const anios = costoPorAnio(m.rp);
+      // El costo esperado es el promedio ponderado de los costos de cada año, y ningún año cuesta eso.
+      expect(P.escenarios.reduce((t, s, k) => t + s.prob * anios[k], 0)).toBeCloseTo(m.rp.total, 4);
+      anios.forEach((c) => expect(Math.abs(c - m.rp.total)).toBeGreaterThan(1));
+      // Con información perfecta cada año tiene su plan, y ninguno es el recomendado.
+      expect(m.wsPlanes.length).toBe(P.escenarios.length);
+      expect(P.escenarios.reduce((t, s, k) => t + s.prob * m.wsPlanes[k].total, 0)).toBeCloseTo(m.ws, 4);
+      const clave = (a: string[]) => [...a].sort().join();
+      m.wsPlanes.forEach((w) => expect(clave(w.abiertos)).not.toBe(clave(m.rp.abiertos)));
+      // El plan para el peor año cuesta más en promedio pero tiene un peor año más barato.
+      expect(Math.max(...costoPorAnio(m.peor))).toBeLessThan(Math.max(...anios));
+    });
+
+    it('conclusión: la recomendación depende de la probabilidad del año más exigente', async () => {
+      const m = await medidas(P);
+      const sens = await sensibilidadPeor(P);
+      const base = P.escenarios.find((s) => s.id === sens.escenario)!.prob;
+      const r = rangoEstable(sens.puntos, base);
+      const clave = (a: string[]) => [...a].sort().join();
+      expect(clave(sens.puntos.find((q) => Math.abs(q.p - base) < 1e-9)!.abiertos)).toBe(clave(m.rp.abiertos));
+      expect(r.desde).toBeLessThanOrEqual(base);
+      expect(r.hasta).toBeGreaterThanOrEqual(base);
+      // Fuera del rango el plan cambia.
+      expect(r.antes && clave(r.antes.abiertos)).not.toBe(clave(m.rp.abiertos));
+      expect(r.despues && clave(r.despues.abiertos)).not.toBe(clave(m.rp.abiertos));
     });
 
     it('sin silo bolsa hay que guardar todo en cualquier año: sale más caro', async () => {
