@@ -324,6 +324,9 @@ table.data.rounds td.cut { font-family: ui-monospace, SFMono-Regular, Menlo, mon
 }
 .repro-columnas { margin: 8px 0 0; }
 .repro-benders { margin: 8px 0 0; }
+.conclusion { margin-top: 28px; padding-top: 4px; border-top: 1px solid var(--line); }
+.conclusion h5 { font-size: 0.95rem; font-weight: 600; margin: 1.3em 0 0.3em; }
+.conclusion ul { margin: 0.3em 0; padding-left: 1.3em; }
 .repro-benders tr.active td { font-weight: 600; }
 .repro-benders .bounds { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 8px 0 4px; font-size: 0.9rem; }
 .repro-cortes { margin: 0; padding-left: 2.4em; max-height: 220px; overflow-y: auto; font-size: 0.85rem; }

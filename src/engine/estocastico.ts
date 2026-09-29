@@ -247,6 +247,8 @@ export interface Medidas {
   peor: Evaluacion;
   /** Esperanza con información perfecta (wait and see). */
   ws: number;
+  /** El mejor plan de cada escenario si se supiera de antemano que va a pasar. */
+  wsPlanes: { escenario: string; abiertos: string[]; total: number }[];
   /** Valor de la solución estocástica: EEV − RP. */
   vss: number;
   /** Valor esperado de la información perfecta: RP − WS. */
@@ -257,8 +259,53 @@ export async function medidas(P: ProblemaEstocastico): Promise<Medidas> {
   const rp = await evaluar(P, (await resolverExtensivo(P)).abiertos);
   const eev = await evaluar(P, await planDeterministico(P, demandaPromedio(P)));
   const peor = await evaluar(P, await planDeterministico(P, peorEscenario(P).demanda));
-  let ws = 0;
-  for (const s of P.escenarios) ws += s.prob * (await resolverExtensivo({ ...P, escenarios: [{ ...s, prob: 1 }] })).total;
-  ws = r6(ws);
-  return { rp, eev, peor, ws, vss: r6(eev.total - rp.total), evpi: r6(rp.total - ws) };
+  const wsPlanes: Medidas['wsPlanes'] = [];
+  for (const s of P.escenarios) {
+    const r = await resolverExtensivo({ ...P, escenarios: [{ ...s, prob: 1 }] });
+    wsPlanes.push({ escenario: s.id, abiertos: P.depositos.filter((d) => r.abiertos.has(d.id)).map((d) => d.id), total: r.total });
+  }
+  const ws = r6(P.escenarios.reduce((t, s, k) => t + s.prob * wsPlanes[k].total, 0));
+  return { rp, eev, peor, ws, wsPlanes, vss: r6(eev.total - rp.total), evpi: r6(rp.total - ws) };
+}
+
+/** Costo de cada año con un plan ya decidido: fijo + segunda etapa de ese escenario. */
+export const costoPorAnio = (e: Evaluacion) => e.escenarios.map((r) => r6(e.fijo + r.costo));
+
+export interface PuntoSensibilidad {
+  /** Probabilidad del escenario más exigente. */
+  p: number;
+  abiertos: string[];
+  total: number;
+}
+
+/**
+ * ¿Cambia la decisión si el escenario más exigente es más o menos probable? Se mueve su
+ * probabilidad (de a `paso`, entre 0 y `hasta`) contra la del escenario más probable de los otros,
+ * y se re-resuelve el modelo completo en cada punto.
+ */
+export async function sensibilidadPeor(P: ProblemaEstocastico, paso = 0.01, hasta = 0.5): Promise<{ escenario: string; puntos: PuntoSensibilidad[] }> {
+  const peor = peorEscenario(P);
+  const otro = P.escenarios.filter((s) => s !== peor).reduce((m, s) => (s.prob > m.prob ? s : m));
+  const masa = peor.prob + otro.prob;
+  const ps = new Set<number>([peor.prob]);
+  for (let p = 0; p <= Math.min(hasta, masa) + 1e-9; p += paso) ps.add(r6(p));
+  const puntos: PuntoSensibilidad[] = [];
+  for (const p of [...ps].sort((a, b) => a - b)) {
+    const escenarios = P.escenarios.map((s) => (s === peor ? { ...s, prob: p } : s === otro ? { ...s, prob: r6(masa - p) } : s));
+    const r = await resolverExtensivo({ ...P, escenarios });
+    puntos.push({ p, abiertos: P.depositos.filter((d) => r.abiertos.has(d.id)).map((d) => d.id), total: r.total });
+  }
+  return { escenario: peor.id, puntos };
+}
+
+/** Rango de probabilidades (contiguo alrededor de `base`) en el que el plan no cambia. */
+export function rangoEstable(puntos: PuntoSensibilidad[], base: number) {
+  const mismo = (a: string[], b: string[]) => a.length === b.length && a.every((x) => b.includes(x));
+  const i = puntos.findIndex((q) => Math.abs(q.p - base) < 1e-9);
+  const plan = puntos[i].abiertos;
+  let lo = i;
+  let hi = i;
+  while (lo > 0 && mismo(puntos[lo - 1].abiertos, plan)) lo--;
+  while (hi < puntos.length - 1 && mismo(puntos[hi + 1].abiertos, plan)) hi++;
+  return { desde: puntos[lo].p, hasta: puntos[hi].p, antes: lo > 0 ? puntos[lo - 1] : null, despues: hi < puntos.length - 1 ? puntos[hi + 1] : null };
 }

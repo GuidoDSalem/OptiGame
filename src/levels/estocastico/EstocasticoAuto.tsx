@@ -1,7 +1,16 @@
 import { useEffect, useState } from 'react';
-import { bendersEstocastico, medidas, type EstadoEstocastico, type Medidas, type ProblemaEstocastico } from '../../engine/estocastico';
+import {
+  bendersEstocastico,
+  medidas,
+  sensibilidadPeor,
+  type EstadoEstocastico,
+  type Medidas,
+  type ProblemaEstocastico,
+  type PuntoSensibilidad,
+} from '../../engine/estocastico';
 import { ConvergenceChart } from '../../ui/components/ConvergenceChart';
 import type { ResultsExtraProps } from '../types';
+import { ConclusionEstocastico } from './ConclusionEstocastico';
 import { TablaEscenarios, fmt, recortar } from './EstocasticoPanel';
 import type { VarianteEstocastica } from './template';
 
@@ -9,6 +18,7 @@ interface Datos {
   m: Medidas;
   multi: EstadoEstocastico;
   unico: EstadoEstocastico;
+  sens: { escenario: string; puntos: PuntoSensibilidad[] };
 }
 
 /** Panel del resultado: el valor de pensar en escenarios, y Benders multi-corte vs. corte único. */
@@ -20,11 +30,16 @@ export function crearEstocasticoAutomatico(v: VarianteEstocastica, P: ProblemaEs
   return function EstocasticoAutomatico({ result }: ResultsExtraProps) {
     const [d, setD] = useState<Datos | null>(null);
     useEffect(() => {
-      cache ??= (async () => ({ m: await medidas(P), multi: await bendersEstocastico(P, 'multi'), unico: await bendersEstocastico(P, 'unico') }))();
+      cache ??= (async () => ({
+        m: await medidas(P),
+        multi: await bendersEstocastico(P, 'multi'),
+        unico: await bendersEstocastico(P, 'unico'),
+        sens: await sensibilidadPeor(P),
+      }))();
       cache.then(setD);
     }, []);
     if (!d) return <p className="muted">Resolviendo los escenarios…</p>;
-    const { m, multi, unico } = d;
+    const { m, multi, unico, sens } = d;
     const coincide = result.status === 'optimal' && Math.abs((result.objective ?? NaN) - m.rp.total) < 1e-4;
 
     return (
@@ -102,6 +117,8 @@ export function crearEstocasticoAutomatico(v: VarianteEstocastica, P: ProblemaEs
           Con miles de escenarios, cada ronda resuelve miles de transportes chicos e independientes: se reparten entre
           muchos procesadores. Esa es la gracia de descomponer.
         </p>
+
+        <ConclusionEstocastico v={v} m={m} sens={sens} />
       </div>
     );
   };
