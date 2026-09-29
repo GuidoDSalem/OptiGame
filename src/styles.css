@@ -314,6 +314,18 @@ table.data.rounds td.cut { font-family: ui-monospace, SFMono-Regular, Menlo, mon
   .plan-pista { grid-column: 1 / -1; grid-row: 2; }
 }
 .repro-columnas { margin: 8px 0 0; }
+.repro-benders { margin: 8px 0 0; }
+.repro-benders tr.active td { font-weight: 600; }
+.repro-benders .bounds { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 8px 0 4px; font-size: 0.9rem; }
+.repro-cortes { margin: 0; padding-left: 2.4em; max-height: 220px; overflow-y: auto; font-size: 0.85rem; }
+.repro-cortes li { padding: 2px 4px; border-radius: 4px; }
+.repro-cortes li.nuevo { background: var(--accent-soft); }
+.mapa-benders { display: block; max-width: 420px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+.mapa-benders .envio { stroke: var(--accent); opacity: 0.55; stroke-linecap: round; }
+.mapa-benders .cliente circle { fill: var(--muted); }
+.mapa-benders .cliente text { font-size: 9px; fill: var(--muted); }
+.mapa-benders .deposito { fill: var(--surface); stroke: var(--ink); stroke-width: 1.5; }
+.mapa-benders .deposito.abierto { fill: var(--ink); }
 .repro-controles { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .repro-controles .primary { margin-top: 0; min-width: 8.5em; }
 .repro-controles input[type='range'] { flex: 1; min-width: 120px; }

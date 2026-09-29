@@ -186,13 +186,49 @@ export async function paso(
 export const convergio = (e: EstadoBenders) =>
   e.rondas.length > 0 && e.mejor - e.cotaInferior <= 1e-6 * Math.max(1, Math.abs(e.mejor));
 
-/** Benders automático: el maestro propone, el subproblema corta, hasta que las cotas se tocan. */
-export async function benders(P: ProblemaLocalizacion, maxRondas = 40): Promise<EstadoBenders> {
+/** Una ronda de Benders automático, con lo que creía el maestro al proponer. */
+export interface RondaTraza {
+  /** Lo que propuso el maestro con los cortes que tenía: apertura, su estimación θ y su cota. */
+  maestro: { abiertos: string[]; theta: number; cotaInferior: number };
+  ronda: Ronda;
+  /** Transporte óptimo del subproblema (id de variable → camiones). */
+  flujos: Record<string, number>;
+  /** Estado después de la ronda (con el corte nuevo). */
+  estado: EstadoBenders;
+}
+
+/** Benders automático guardando cada ronda: el maestro propone, el subproblema corta. */
+export async function trazaBenders(P: ProblemaLocalizacion, maxRondas = 40): Promise<RondaTraza[]> {
   let e = await iniciarBenders(P);
+  const traza: RondaTraza[] = [];
   for (let k = 0; k < maxRondas && !convergio(e); k++) {
-    const r = await paso(P, e, await propuestaMaestro(P, e), 'maestro');
+    const m = await resolverMaestro(P, e.cortes);
+    const r = await paso(P, e, m.abiertos, 'maestro');
     if (!r.factible) break;
+    traza.push({
+      maestro: { abiertos: [...m.abiertos], theta: redondear(m.theta), cotaInferior: redondear(m.cotaInferior) },
+      ronda: r.ronda,
+      flujos: r.flujos,
+      estado: r.estado,
+    });
     e = r.estado;
   }
-  return e;
+  return traza;
+}
+
+/** Benders automático: el maestro propone, el subproblema corta, hasta que las cotas se tocan. */
+export async function benders(P: ProblemaLocalizacion, maxRondas = 40): Promise<EstadoBenders> {
+  const traza = await trazaBenders(P, maxRondas);
+  return traza.length ? traza[traza.length - 1].estado : iniciarBenders(P);
+}
+
+/**
+ * Los pasos que muestra la reproducción: en cada ronda el maestro propone, el subproblema
+ * calcula el transporte real y devuelve un corte; al final, las cotas se tocan.
+ */
+export type FaseBenders = 'maestro' | 'subproblema' | 'corte' | 'fin';
+
+export function fasesBenders(traza: RondaTraza[]): { k: number; fase: FaseBenders }[] {
+  const fases = traza.flatMap((_, k) => (['maestro', 'subproblema', 'corte'] as const).map((fase) => ({ k, fase })));
+  return traza.length ? [...fases, { k: traza.length - 1, fase: 'fin' as const }] : fases;
 }

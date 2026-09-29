@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import {
   describir,
   fasesDeLaTraza,
@@ -11,6 +11,7 @@ import {
   type ProblemaCorte,
 } from '../../engine/columnas';
 import { ConvergenceChart } from '../../ui/components/ConvergenceChart';
+import { ControlesReproductor, useReproductor } from '../../ui/components/Reproductor';
 import { Rich } from '../../ui/components/Rich';
 import { Tex } from '../../ui/components/Tex';
 import { COLORES_PIEZA, PatronBar, colorCss } from './PatronBar';
@@ -25,13 +26,6 @@ const TITULOS: Record<FaseColumnas, string> = {
   agrega: 'Agregar la columna',
   fin: 'Fin: no hay columna que convenga',
 };
-
-/** Segundos por paso según la velocidad. */
-const VELOCIDADES = [
-  { id: 'lenta', label: 'Lenta', ms: 3600 },
-  { id: 'normal', label: 'Normal', ms: 2200 },
-  { id: 'rapida', label: 'Rápida', ms: 900 },
-];
 
 interface Props {
   P: ProblemaCorte;
@@ -48,25 +42,8 @@ interface Props {
 export function ReproductorColumnas({ P, traza, entero }: Props) {
   const fases = useMemo(() => fasesDeLaTraza(traza), [traza]);
   const catalogo = useMemo(() => todosLosPatrones(P).length, [P]);
-  const [i, setI] = useState(0);
-  const [corriendo, setCorriendo] = useState(false);
-  const [vel, setVel] = useState('normal');
-  const ultimo = fases.length - 1;
-
-  useEffect(() => {
-    if (!corriendo) return;
-    if (i >= ultimo) {
-      setCorriendo(false);
-      return;
-    }
-    const t = setTimeout(() => setI((x) => Math.min(ultimo, x + 1)), VELOCIDADES.find((v) => v.id === vel)!.ms);
-    return () => clearTimeout(t);
-  }, [corriendo, i, vel, ultimo]);
-
-  const ir = (n: number) => {
-    setCorriendo(false);
-    setI(Math.max(0, Math.min(ultimo, n)));
-  };
+  const r = useReproductor(fases.length);
+  const { i } = r;
 
   const { k, fase } = fases[i];
   const e = traza[k];
@@ -113,37 +90,7 @@ export function ReproductorColumnas({ P, traza, entero }: Props) {
 
   return (
     <div className="repro-columnas">
-      <div className="repro-controles">
-        <button className="icon" onClick={() => ir(0)} disabled={i === 0} title="Al principio" aria-label="Al principio">
-          ⏮
-        </button>
-        <button className="icon" onClick={() => ir(i - 1)} disabled={i === 0} title="Paso anterior" aria-label="Paso anterior">
-          ◀
-        </button>
-        <button
-          className="primary"
-          onClick={() => {
-            if (!corriendo && i >= ultimo) setI(0);
-            setCorriendo(!corriendo);
-          }}
-        >
-          {corriendo ? 'Pausa' : i >= ultimo ? '▶ Ver de nuevo' : i === 0 ? '▶ Reproducir' : '▶ Seguir'}
-        </button>
-        <button className="icon" onClick={() => ir(i + 1)} disabled={i === ultimo} title="Paso siguiente" aria-label="Paso siguiente">
-          ▶
-        </button>
-        <button className="icon" onClick={() => ir(ultimo)} disabled={i === ultimo} title="Al final" aria-label="Al final">
-          ⏭
-        </button>
-        <input type="range" min={0} max={ultimo} value={i} onChange={(ev) => ir(Number(ev.target.value))} aria-label="Paso" />
-        <select value={vel} onChange={(ev) => setVel(ev.target.value)} aria-label="Velocidad">
-          {VELOCIDADES.map((x) => (
-            <option key={x.id} value={x.id}>
-              {x.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      <ControlesReproductor r={r} />
 
       <p className="repro-paso">
         <span className="muted">
