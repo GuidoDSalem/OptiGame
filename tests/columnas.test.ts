@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   costoReducido,
   enteroConPatrones,
+  fasesDeLaTraza,
   generacionDeColumnas,
   iniciarColumnas,
   paso,
@@ -10,6 +11,7 @@ import {
   redondeoHaciaArriba,
   resolverMaestro,
   todosLosPatrones,
+  trazaColumnas,
   valorPatron,
 } from '../src/engine/columnas';
 import { diagnose } from '../src/engine/diagnose';
@@ -59,6 +61,23 @@ describe.each(nivelesColumnas.map((level, i) => ({ level, v: VARIANTES_COLUMNAS[
       }
       cotas.forEach((c) => expect(c).toBeLessThanOrEqual(lp + 1e-6));
       e.rondas.forEach((r) => expect(r.costoReducido).toBeLessThan(0));
+    });
+
+    it('la traza guarda un estado por ronda y la reproducción es corta', async () => {
+      const traza = await trazaColumnas(P);
+      const e = await generacionDeColumnas(P);
+      expect(traza.length).toBe(e.rondas.length + 1);
+      expect(traza[traza.length - 1].maestro.objetivo).toBeCloseTo(e.maestro.objetivo, 6);
+      traza.forEach((t, k) => {
+        expect(t.rondas.length).toBe(k);
+        // El patrón que sugiere el pricing en un estado es el que entra en el siguiente.
+        if (k > 0) expect(t.patrones[t.patrones.length - 1]).toEqual(traza[k - 1].sugerido.patron);
+      });
+      const fases = fasesDeLaTraza(traza);
+      expect(fases.length).toBe(4 * traza.length);
+      expect(fases.filter((f) => f.fase === 'agrega').length).toBe(traza.length - 1);
+      expect(fases[fases.length - 1]).toEqual({ k: traza.length - 1, fase: 'fin' });
+      expect(fases.length).toBeLessThanOrEqual(40);
     });
 
     it('el pricing encuentra el patrón más valioso (comparado con todos)', async () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { benders, resolverSubproblema } from '../src/engine/benders';
+import { benders, fasesBenders, resolverSubproblema, trazaBenders } from '../src/engine/benders';
 import { diagnose } from '../src/engine/diagnose';
 import { compileIndexed, type IndexedDraft } from '../src/engine/indexed';
 import { solve } from '../src/engine/solver';
@@ -26,6 +26,24 @@ describe.each(nivelesBenders.map((level, i) => ({ level, v: VARIANTES_BENDERS[i]
       const ev = level.evaluate(r.values);
       expect(ev.feasible).toBe(true);
       expect(ev.objective).toBeCloseTo(r.objective!, 4);
+    });
+
+    it('la traza guarda lo que creía el maestro en cada ronda', async () => {
+      const traza = await trazaBenders(P);
+      const e = await benders(P);
+      expect(traza.length).toBe(e.rondas.length);
+      traza.forEach((t, k) => {
+        // El maestro propone la apertura que después evalúa el subproblema.
+        expect(new Set(t.maestro.abiertos)).toEqual(new Set(t.ronda.abiertos));
+        // Su estimación nunca supera al costo real: es optimista.
+        expect(t.maestro.theta).toBeLessThanOrEqual(t.ronda.transporte + 1e-6);
+        expect(t.maestro.cotaInferior).toBeCloseTo(t.ronda.costoFijo + t.maestro.theta, 4);
+        // Su cota es la que dejó el corte de la ronda anterior.
+        if (k > 0) expect(t.maestro.cotaInferior).toBeCloseTo(traza[k - 1].ronda.cotaInferior, 4);
+      });
+      const fases = fasesBenders(traza);
+      expect(fases.length).toBe(3 * traza.length + 1);
+      expect(fases[fases.length - 1]).toEqual({ k: traza.length - 1, fase: 'fin' });
     });
 
     it('Benders llega al mismo óptimo, con cotas monótonas que se tocan', async () => {

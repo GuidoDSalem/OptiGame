@@ -8,7 +8,7 @@
 import type { ProblemaLocalizacion } from '../../engine/benders';
 import { compileIndexed, term, type IndexedDraft, type IndexedSpec } from '../../engine/indexed';
 import type { Check, ContentBlock, Level } from '../types';
-import { crearBendersAutomatico } from './BendersAuto';
+import { TUTORIAL_JUMP, crearBendersAutomatico } from './BendersAuto';
 import { crearPanelBenders } from './BendersPanel';
 import { crearEscenaDepositos } from './Scene';
 
@@ -135,6 +135,11 @@ export function crearNivelBenders(v: VarianteBenders): Level {
     {
       type: 'p',
       text: 'Es **generación de filas**, como los cortes de subtours del nivel 6, pero los cortes los calcula otro problema de optimización. Su "hermana" dual es la **generación de columnas**, que agrega variables en vez de restricciones. Benders brilla en problemas con **incertidumbre**: un maestro con las decisiones de hoy y un subproblema por cada escenario futuro.',
+    },
+    { type: 'h', text: 'Para ver el código' },
+    {
+      type: 'p',
+      text: `Si te interesa ver cómo se implementa en código, hay un tutorial muy bueno en la documentación de JuMP (Julia): [Benders decomposition](${TUTORIAL_JUMP}). Muestra la versión iterativa (como la de este nivel), una con callbacks que agrega los cortes dentro del branch and bound, y los cortes de factibilidad para cuando el subproblema no tiene solución.`,
     },
   ];
 

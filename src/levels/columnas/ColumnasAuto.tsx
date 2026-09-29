@@ -1,30 +1,35 @@
 import { useEffect, useState } from 'react';
 import {
-  describir,
   enteroConPatrones,
-  generacionDeColumnas,
+  trazaColumnas,
   patronDeVariable,
   redondeoHaciaArriba,
   type EstadoColumnas,
   type ProblemaCorte,
   type SolucionEntera,
 } from '../../engine/columnas';
-import { ConvergenceChart } from '../../ui/components/ConvergenceChart';
 import type { ResultsExtraProps } from '../types';
-import { serieCota, serieLp } from './ColumnasPanel';
-import { PatronBar } from './PatronBar';
+import { PlanDeCorte } from './PlanDeCorte';
+import { ReproductorColumnas } from './ReproductorColumnas';
 import type { VarianteColumnas } from './template';
+
+/** Implementación de referencia en Python (Gurobi) del mismo problema. */
+export const REPO_EJEMPLO = 'https://github.com/demirayonur/Column-Generation/blob/main/ColumnGeneration_CuttingStockProblem.ipynb';
 
 const fmt = (n: number) => n.toLocaleString('es-AR', { maximumFractionDigits: 3 });
 
 /** Panel del resultado: los patrones que eligió el solver y la generación de columnas automática. */
 export function crearColumnasAutomatico(v: VarianteColumnas, P: ProblemaCorte) {
-  let cache: Promise<{ e: EstadoColumnas; entero: SolucionEntera }> | null = null;
+  type Datos = { traza: EstadoColumnas[]; e: EstadoColumnas; entero: SolucionEntera };
+  let cache: Promise<Datos> | null = null;
 
   return function ColumnasAutomatico({ result, model }: ResultsExtraProps) {
-    const [datos, setDatos] = useState<{ e: EstadoColumnas; entero: SolucionEntera } | null>(null);
+    const [datos, setDatos] = useState<Datos | null>(null);
     useEffect(() => {
-      cache ??= generacionDeColumnas(P).then(async (e) => ({ e, entero: await enteroConPatrones(P, e.patrones) }));
+      cache ??= trazaColumnas(P).then(async (traza) => {
+        const e = traza[traza.length - 1];
+        return { traza, e, entero: await enteroConPatrones(P, e.patrones) };
+      });
       cache.then(setDatos);
     }, []);
 
@@ -37,25 +42,10 @@ export function crearColumnasAutomatico(v: VarianteColumnas, P: ProblemaCorte) {
       <div className="pareto-panel columnas">
         {result.status === 'optimal' && usados.length > 0 && (
           <>
-            <h4>Los patrones que eligió el solver</h4>
+            <PlanDeCorte P={P} values={result.values} />
             <p className="muted small">
-              Tu modelo tenía {model.variables.length} columnas (una por patrón); se usan {usados.length}.
+              Tu modelo tenía {model.variables.length} columnas (una por patrón); la solución usa {usados.length}.
             </p>
-            <table className="data rounds">
-              <tbody>
-                {usados.map(({ p, n }, i) => (
-                  <tr key={i}>
-                    <td className="r">
-                      <strong>{fmt(n)}</strong> ×
-                    </td>
-                    <td>
-                      <PatronBar P={P} p={p!} compact />
-                      <span className="cut">{describir(P, p!)}</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </>
         )}
 
@@ -64,18 +54,12 @@ export function crearColumnasAutomatico(v: VarianteColumnas, P: ProblemaCorte) {
           <p className="muted">Generando columnas…</p>
         ) : (
           <>
-            <ConvergenceChart
-              yLabel="Bobinas"
-              series={[
-                { label: 'maestro (relajación)', values: serieLp(datos.e), className: 'cota-superior' },
-                { label: 'cota inferior (Farley)', values: serieCota(datos.e), className: 'cota-inferior' },
-              ]}
-            />
             <p>
               Arrancando con {v.pedidos.length} patrones obvios, en <strong>{datos.e.rondas.length} rondas</strong> de
               pricing llegó a la relajación óptima con sólo <strong>{datos.e.patrones.length}</strong> patrones (de los{' '}
-              {model.variables.length} posibles).
+              {model.variables.length} posibles). Miralo paso a paso: reproducilo entero o avanzá de a un paso.
             </p>
+            <ReproductorColumnas P={P} traza={datos.traza} entero={datos.entero.bobinas} />
             <table className="data">
               <tbody>
                 <tr>
@@ -109,6 +93,18 @@ export function crearColumnasAutomatico(v: VarianteColumnas, P: ProblemaCorte) {
             )}
           </>
         )}
+
+        <div className="note">
+          <p>
+            Si te interesa ver cómo se implementa en código, hay un repo muy bueno de demirayonur en GitHub:{' '}
+            <a href={REPO_EJEMPLO} target="_blank" rel="noopener noreferrer">
+              Column-Generation
+            </a>
+            . Es una notebook de Python con Gurobi que resuelve este mismo problema de corte: primero con el modelo de
+            Kantorovich (una variable por bobina y pedido) y después con generación de columnas, con el maestro
+            restringido y la mochila del pricing escritos paso a paso.
+          </p>
+        </div>
       </div>
     );
   };

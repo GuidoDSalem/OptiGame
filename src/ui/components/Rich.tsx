@@ -2,16 +2,23 @@ import { Fragment, type ReactNode } from 'react';
 import type { ContentBlock } from '../../levels/types';
 import { Tex } from './Tex';
 
-/** Texto con **negrita** y LaTeX en línea entre $...$. */
+/** Texto con **negrita**, LaTeX en línea entre $...$ y links [texto](https://…). */
 export function Rich({ text }: { text: string }) {
   const out: ReactNode[] = [];
-  const re = /\$([^$]+)\$|\*\*([^*]+)\*\*/g;
+  const re = /\$([^$]+)\$|\*\*([^*]+)\*\*|\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
   let last = 0;
   let m: RegExpExecArray | null;
   let k = 0;
   while ((m = re.exec(text))) {
     if (m.index > last) out.push(<Fragment key={k++}>{text.slice(last, m.index)}</Fragment>);
-    out.push(m[1] !== undefined ? <Tex key={k++} tex={m[1]} /> : <strong key={k++}>{m[2]}</strong>);
+    if (m[1] !== undefined) out.push(<Tex key={k++} tex={m[1]} />);
+    else if (m[2] !== undefined) out.push(<strong key={k++}>{m[2]}</strong>);
+    else
+      out.push(
+        <a key={k++} href={m[4]} target="_blank" rel="noopener noreferrer">
+          {m[3]}
+        </a>,
+      );
     last = re.lastIndex;
   }
   if (last < text.length) out.push(<Fragment key={k++}>{text.slice(last)}</Fragment>);

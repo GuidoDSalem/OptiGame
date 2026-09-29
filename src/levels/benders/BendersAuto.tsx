@@ -1,23 +1,27 @@
 import { useEffect, useState } from 'react';
-import { benders, type EstadoBenders, type ProblemaLocalizacion } from '../../engine/benders';
-import { ConvergenceChart } from '../../ui/components/ConvergenceChart';
+import { trazaBenders, type ProblemaLocalizacion, type RondaTraza } from '../../engine/benders';
 import type { ResultsExtraProps } from '../types';
+import { ReproductorBenders } from './ReproductorBenders';
 import type { VarianteBenders } from './template';
+
+/** Implementación de referencia en Julia (JuMP) de Benders, con cortes de optimalidad y de factibilidad. */
+export const TUTORIAL_JUMP = 'https://jump.dev/JuMP.jl/stable/tutorials/algorithms/benders_decomposition/';
 
 const fmt = (n: number) => n.toLocaleString('es-AR', { maximumFractionDigits: 1 });
 
 /** Panel del resultado: Benders automático, comparado con el modelo completo del jugador. */
 export function crearBendersAutomatico(v: VarianteBenders, P: ProblemaLocalizacion) {
-  let cache: Promise<EstadoBenders> | null = null;
+  let cache: Promise<RondaTraza[]> | null = null;
   const short = (id: string) => v.depositos.find((d) => d.id === id)?.short ?? id;
 
   return function BendersAutomatico({ result }: ResultsExtraProps) {
-    const [e, setE] = useState<EstadoBenders | null>(null);
+    const [traza, setTraza] = useState<RondaTraza[] | null>(null);
     useEffect(() => {
-      cache ??= benders(P);
-      cache.then(setE);
+      cache ??= trazaBenders(P);
+      cache.then(setTraza);
     }, []);
-    if (!e) return <p className="muted">Corriendo Benders…</p>;
+    if (!traza) return <p className="muted">Corriendo Benders…</p>;
+    const e = traza[traza.length - 1].estado;
 
     const final = e.rondas.find((r) => r.total === e.mejor)!;
     const coincide = result.status === 'optimal' && Math.abs((result.objective ?? NaN) - e.mejor) < 1e-4;
@@ -25,14 +29,6 @@ export function crearBendersAutomatico(v: VarianteBenders, P: ProblemaLocalizaci
     return (
       <div className="pareto-panel">
         <h4>Benders, ronda por ronda</h4>
-        <ConvergenceChart
-          yLabel="Costo ($k/sem)"
-          series={[
-            { label: 'propuesta del maestro', values: e.rondas.map((r) => r.total), className: 'propuesta' },
-            { label: 'mejor solución', values: e.rondas.map((r) => r.mejor), className: 'cota-superior' },
-            { label: 'cota inferior', values: e.rondas.map((r) => r.cotaInferior), className: 'cota-inferior' },
-          ]}
-        />
         <p>
           En <strong>{e.rondas.length} rondas</strong> (un maestro chico y un transporte por ronda) Benders llegó a{' '}
           <strong>$k {fmt(e.mejor)}</strong>, abriendo {final.abiertos.map(short).join(', ')}.{' '}
@@ -45,6 +41,20 @@ export function crearBendersAutomatico(v: VarianteBenders, P: ProblemaLocalizaci
           Con 5 depósitos, resolver todo junto es más rápido. Benders gana cuando el problema es enorme o tiene
           muchos escenarios: el maestro queda chico y los subproblemas se pueden resolver en paralelo.
         </p>
+        <p>Miralo paso a paso: reproducilo entero o avanzá de a un paso.</p>
+        <ReproductorBenders v={v} traza={traza} />
+
+        <div className="note">
+          <p>
+            Si te interesa ver cómo se implementa en código, hay un tutorial muy bueno en la documentación de JuMP (Julia):{' '}
+            <a href={TUTORIAL_JUMP} target="_blank" rel="noopener noreferrer">
+              Benders decomposition
+            </a>
+            . Resuelve un problema de flujo con arcos que hay que pagar para abrir, y muestra la versión iterativa (como
+            esta), una con callbacks que agrega los cortes dentro del branch and bound, y los cortes de factibilidad
+            para cuando el subproblema no tiene solución.
+          </p>
+        </div>
       </div>
     );
   };
