@@ -271,41 +271,76 @@ export async function medidas(P: ProblemaEstocastico): Promise<Medidas> {
 /** Costo de cada año con un plan ya decidido: fijo + segunda etapa de ese escenario. */
 export const costoPorAnio = (e: Evaluacion) => e.escenarios.map((r) => r6(e.fijo + r.costo));
 
-export interface PuntoSensibilidad {
-  /** Probabilidad del escenario más exigente. */
-  p: number;
-  abiertos: string[];
-  total: number;
+export interface Sensibilidad {
+  /** Escenario más exigente, cuya probabilidad se mueve. */
+  escenario: string;
+  /** Su probabilidad en los datos. */
+  base: number;
+  /** Rango de esa probabilidad en el que la recomendación no cambia (umbrales exactos). */
+  desde: number;
+  hasta: number;
+  /** El plan que conviene por debajo de `desde` y por encima de `hasta` (null si no cambia). */
+  antes: string[] | null;
+  despues: string[] | null;
 }
 
 /**
  * ¿Cambia la decisión si el escenario más exigente es más o menos probable? Se mueve su
- * probabilidad (de a `paso`, entre 0 y `hasta`) contra la del escenario más probable de los otros,
- * y se re-resuelve el modelo completo en cada punto.
+ * probabilidad (entre 0 y `hasta`) contra la del escenario más probable de los otros.
+ *
+ * Con las plantas fijas, el costo de cada año no depende de las probabilidades: el costo
+ * esperado de un plan es una recta en p. Una grilla gruesa dice qué planes compiten con la
+ * recomendación a cada lado, y el umbral es donde se cruzan sus rectas.
  */
-export async function sensibilidadPeor(P: ProblemaEstocastico, paso = 0.01, hasta = 0.5): Promise<{ escenario: string; puntos: PuntoSensibilidad[] }> {
+export async function sensibilidadPeor(P: ProblemaEstocastico, paso = 0.05, hasta = 0.5): Promise<Sensibilidad> {
   const peor = peorEscenario(P);
   const otro = P.escenarios.filter((s) => s !== peor).reduce((m, s) => (s.prob > m.prob ? s : m));
   const masa = peor.prob + otro.prob;
-  const ps = new Set<number>([peor.prob]);
-  for (let p = 0; p <= Math.min(hasta, masa) + 1e-9; p += paso) ps.add(r6(p));
-  const puntos: PuntoSensibilidad[] = [];
-  for (const p of [...ps].sort((a, b) => a - b)) {
-    const escenarios = P.escenarios.map((s) => (s === peor ? { ...s, prob: p } : s === otro ? { ...s, prob: r6(masa - p) } : s));
-    const r = await resolverExtensivo({ ...P, escenarios });
-    puntos.push({ p, abiertos: P.depositos.filter((d) => r.abiertos.has(d.id)).map((d) => d.id), total: r.total });
-  }
-  return { escenario: peor.id, puntos };
-}
-
-/** Rango de probabilidades (contiguo alrededor de `base`) en el que el plan no cambia. */
-export function rangoEstable(puntos: PuntoSensibilidad[], base: number) {
+  const tope = Math.min(hasta, masa);
+  const conP = (p: number) => P.escenarios.map((s) => (s === peor ? { ...s, prob: p } : s === otro ? { ...s, prob: r6(masa - p) } : s));
+  const plan = async (p: number) => {
+    const r = await resolverExtensivo({ ...P, escenarios: conP(p) });
+    return P.depositos.filter((d) => r.abiertos.has(d.id)).map((d) => d.id);
+  };
   const mismo = (a: string[], b: string[]) => a.length === b.length && a.every((x) => b.includes(x));
-  const i = puntos.findIndex((q) => Math.abs(q.p - base) < 1e-9);
-  const plan = puntos[i].abiertos;
-  let lo = i;
-  let hi = i;
-  while (lo > 0 && mismo(puntos[lo - 1].abiertos, plan)) lo--;
-  while (hi < puntos.length - 1 && mismo(puntos[hi + 1].abiertos, plan)) hi++;
-  return { desde: puntos[lo].p, hasta: puntos[hi].p, antes: lo > 0 ? puntos[lo - 1] : null, despues: hi < puntos.length - 1 ? puntos[hi + 1] : null };
+
+  // Costo esperado de un plan como recta a + b·p.
+  const rectas = new Map<string, { a: number; b: number }>();
+  const recta = async (abiertos: string[]) => {
+    const clave = abiertos.join();
+    if (!rectas.has(clave)) {
+      const ev = await evaluar(P, new Set(abiertos));
+      const c = (s: Escenario) => ev.escenarios[P.escenarios.indexOf(s)].costo;
+      const resto = P.escenarios.reduce((t, s) => (s === peor || s === otro ? t : t + s.prob * c(s)), 0);
+      rectas.set(clave, { a: ev.fijo + resto + masa * c(otro), b: c(peor) - c(otro) });
+    }
+    return rectas.get(clave)!;
+  };
+  const cruce = async (x: string[], y: string[]) => {
+    const [rx, ry] = [await recta(x), await recta(y)];
+    return Math.abs(ry.b - rx.b) < 1e-12 ? null : (rx.a - ry.a) / (ry.b - rx.b);
+  };
+
+  const actual = await plan(peor.prob);
+  let desde = 0;
+  let antes: string[] | null = null;
+  for (let p = r6(peor.prob - paso); p >= -1e-9; p = r6(p - paso)) {
+    const otroPlan = await plan(Math.max(0, p));
+    if (!mismo(otroPlan, actual)) {
+      antes = otroPlan;
+      desde = Math.min(peor.prob, Math.max(0, (await cruce(actual, otroPlan)) ?? p));
+      break;
+    }
+  }
+  let hastaP = tope;
+  let despues: string[] | null = null;
+  for (let p = r6(peor.prob + paso); p <= tope + 1e-9; p = r6(p + paso)) {
+    const otroPlan = await plan(Math.min(tope, p));
+    if (!mismo(otroPlan, actual)) {
+      despues = otroPlan;
+      hastaP = Math.max(peor.prob, Math.min(tope, (await cruce(actual, otroPlan)) ?? p));
+      break;
+    }
+  }
+  return { escenario: peor.id, base: peor.prob, desde: r6(desde), hasta: r6(hastaP), antes, despues };
 }

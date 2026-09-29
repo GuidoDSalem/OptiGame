@@ -5,7 +5,6 @@ import {
   costoPorAnio,
   evaluar,
   medidas,
-  rangoEstable,
   resolverEscenario,
   resolverExtensivo,
   sensibilidadPeor,
@@ -102,15 +101,24 @@ describe.each(nivelesEstocastico.map((level, i) => ({ level, v: VARIANTES_ESTOCA
     it('conclusión: la recomendación depende de la probabilidad del año más exigente', async () => {
       const m = await medidas(P);
       const sens = await sensibilidadPeor(P);
-      const base = P.escenarios.find((s) => s.id === sens.escenario)!.prob;
-      const r = rangoEstable(sens.puntos, base);
       const clave = (a: string[]) => [...a].sort().join();
-      expect(clave(sens.puntos.find((q) => Math.abs(q.p - base) < 1e-9)!.abiertos)).toBe(clave(m.rp.abiertos));
-      expect(r.desde).toBeLessThanOrEqual(base);
-      expect(r.hasta).toBeGreaterThanOrEqual(base);
-      // Fuera del rango el plan cambia.
-      expect(r.antes && clave(r.antes.abiertos)).not.toBe(clave(m.rp.abiertos));
-      expect(r.despues && clave(r.despues.abiertos)).not.toBe(clave(m.rp.abiertos));
+      expect(sens.desde).toBeLessThanOrEqual(sens.base);
+      expect(sens.hasta).toBeGreaterThanOrEqual(sens.base);
+      // Re-resolviendo el modelo completo apenas adentro y apenas afuera de cada umbral.
+      const peor = P.escenarios.find((s) => s.id === sens.escenario)!;
+      const otro = P.escenarios.filter((s) => s !== peor).reduce((a, s) => (s.prob > a.prob ? s : a));
+      const plan = async (p: number) => {
+        const escenarios = P.escenarios.map((s) =>
+          s === peor ? { ...s, prob: p } : s === otro ? { ...s, prob: peor.prob + otro.prob - p } : s,
+        );
+        return clave([...(await resolverExtensivo({ ...P, escenarios })).abiertos]);
+      };
+      const eps = 0.002;
+      expect(sens.antes && sens.despues).toBeTruthy();
+      expect(await plan(sens.desde + eps)).toBe(clave(m.rp.abiertos));
+      expect(await plan(sens.desde - eps)).toBe(clave(sens.antes!));
+      expect(await plan(sens.hasta - eps)).toBe(clave(m.rp.abiertos));
+      expect(await plan(sens.hasta + eps)).toBe(clave(sens.despues!));
     });
 
     it('sin silo bolsa hay que guardar todo en cualquier año: sale más caro', async () => {

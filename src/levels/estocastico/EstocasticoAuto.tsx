@@ -6,7 +6,7 @@ import {
   type EstadoEstocastico,
   type Medidas,
   type ProblemaEstocastico,
-  type PuntoSensibilidad,
+  type Sensibilidad,
 } from '../../engine/estocastico';
 import { ConvergenceChart } from '../../ui/components/ConvergenceChart';
 import type { Corte } from '../../engine/benders';
@@ -20,7 +20,7 @@ interface Datos {
   m: Medidas;
   multi: EstadoEstocastico;
   unico: EstadoEstocastico;
-  sens: { escenario: string; puntos: PuntoSensibilidad[] };
+  sens: Sensibilidad;
 }
 
 /** Panel del resultado: el valor de pensar en escenarios, y Benders multi-corte vs. corte único. */
