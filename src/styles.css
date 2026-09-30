@@ -497,6 +497,7 @@ table.data.rounds td.cut { font-family: ui-monospace, SFMono-Regular, Menlo, mon
 .mapa-centro .avenida { fill: none; stroke: #ececE6; stroke-width: 6; stroke-linecap: round; }
 .mapa-centro .lugar { font-size: 10px; fill: #a2a29b; font-style: italic; }
 .mapa-centro .viaje { fill: var(--accent); fill-opacity: 0.75; }
+.mapa-centro .viaje.externo { fill: none; stroke: var(--accent); stroke-opacity: 0.5; stroke-width: 1; }
 .mapa-centro .estacion .tubo { fill: var(--surface); stroke: var(--muted); stroke-width: 1.2; }
 .mapa-centro .estacion .bicis { fill: var(--ink); }
 .mapa-centro .estacion.sin-bici .tubo { stroke: var(--bad); stroke-width: 3; fill: #fdecea; }

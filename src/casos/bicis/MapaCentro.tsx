@@ -59,8 +59,11 @@ interface Props {
   alertas?: (null | 'sin-bici' | 'sin-lugar')[];
   /** Número a mostrar en cada estación (p. ej. el reparto). */
   numeros?: boolean;
-  /** Viajes en curso: puntos entre dos coordenadas (t de 0 a 1). */
-  viajes?: { de: LatLon; a: LatLon; t: number }[];
+  /**
+   * Viajes en curso: puntos entre dos coordenadas (t de 0 a 1). `externo`: sale de (o va a) una
+   * estación que no está entre las del mapa; se dibuja más tenue.
+   */
+  viajes?: { de: LatLon; a: LatLon; t: number; externo?: boolean }[];
   etiquetas?: 'todas' | 'algunas' | 'ninguna';
   resaltar?: number[];
   compacto?: boolean;
@@ -142,13 +145,14 @@ export function MapaCentro({
       {viajes.map((v, k) => {
         const [x0, y0] = P.xy(v.de[0], v.de[1]);
         const [x1, y1] = P.xy(v.a[0], v.a[1]);
-        return <circle key={k} className="viaje" cx={x0 + (x1 - x0) * v.t} cy={y0 + (y1 - y0) * v.t} r={compacto ? 1.2 : 2.6} />;
+        return <circle key={k} className={v.externo ? 'viaje externo' : 'viaje'} cx={x0 + (x1 - x0) * v.t} cy={y0 + (y1 - y0) * v.t} r={compacto ? 1.2 : 2.6} />;
       })}
 
       {estaciones.map((e, i) => {
         const [x, y] = P.xy(e.lat, e.lon);
         const n = niveles?.[i] ?? 0;
-        const h = (Math.min(capacidad, Math.max(0, n)) / capacidad) * th;
+        // Con una o dos bicis el relleno sería de 1 px y la estación parecería vacía: mínimo visible.
+        const h = n > 0 ? Math.max(compacto ? 1.5 : 3, (Math.min(capacidad, n) / capacidad) * th) : 0;
         const alerta = alertas?.[i];
         return (
           <g

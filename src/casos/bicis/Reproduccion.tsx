@@ -63,7 +63,7 @@ export function Reproduccion({ estaciones, viajes, repartos, capacidad, auto = f
       .map(({ v: [o, d, t0, t1, lao, loo, lad, lod] }) => {
         const de = lugar(o, lao, loo);
         const a = lugar(d, lad, lod);
-        return de && a ? { de, a, t: (t - t0) / Math.max(1, t1 - t0) } : null;
+        return de && a ? { de, a, t: (t - t0) / Math.max(1, t1 - t0), externo: o < 0 || d < 0 } : null;
       })
       .filter((v): v is NonNullable<typeof v> => v !== null);
 
@@ -100,7 +100,10 @@ export function Reproduccion({ estaciones, viajes, repartos, capacidad, auto = f
         {repartos.map((r, k) => {
           const sim = sims[k];
           const alertas = estaciones.map(() => null as null | 'sin-bici' | 'sin-lugar');
-          for (const f of sim.fallas) if (f.t <= m && f.t > m - 12) alertas[f.e] = f.tipo;
+          // La alerta dura unos minutos, pero sólo mientras la estación siga vacía (o llena).
+          const nivel = sim.niveles[i];
+          for (const f of sim.fallas)
+            if (f.t <= m && f.t > m - 12 && (f.tipo === 'sin-bici' ? nivel[f.e] === 0 : nivel[f.e] >= capacidad)) alertas[f.e] = f.tipo;
           return (
             <figure key={k}>
               <figcaption className="contador">
@@ -114,7 +117,7 @@ export function Reproduccion({ estaciones, viajes, repartos, capacidad, auto = f
           );
         })}
       </div>
-      {controles && <p className="caption">{fmt(viajes.length)} viajes reales tocaron estas estaciones esa mañana.</p>}
+      {controles && <p className="caption">{fmt(viajes.length)} viajes reales tocaron estas estaciones esa mañana. Los puntos huecos vienen de (o van a) estaciones que no están en el mapa.</p>}
     </div>
   );
 }
