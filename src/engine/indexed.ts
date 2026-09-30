@@ -37,10 +37,16 @@ export interface VarFamily {
    * x_ii en un ruteo: no se "viaja" de un lugar a sí mismo).
    */
   distinct?: [string, string];
+  /**
+   * Filtro general de combinaciones que no forman una variable (p. ej. un tramo de etapas que
+   * termina antes de empezar). Si falta, valen todas.
+   */
+  valida?: (a: Assignment) => boolean;
 }
 
-/** ¿La asignación es válida para la familia (respeta los índices distintos)? */
-export const validFor = (fam: VarFamily, a: Assignment) => !fam.distinct || a[fam.distinct[0]] !== a[fam.distinct[1]];
+/** ¿La asignación es válida para la familia (respeta los índices distintos y el filtro)? */
+export const validFor = (fam: VarFamily, a: Assignment) =>
+  (!fam.distinct || a[fam.distinct[0]] !== a[fam.distinct[1]]) && (!fam.valida || fam.valida(a));
 
 /** Dominio de una familia de variables: lo elige el jugador. */
 export type VarType = 'cont' | 'int' | 'bin';
