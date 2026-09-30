@@ -260,3 +260,61 @@ export const percentil = (xs: number[], q: number) => {
   return s[Math.min(s.length - 1, Math.max(0, Math.ceil(q * s.length) - 1))];
 };
 export const media = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / Math.max(1, xs.length);
+
+/**
+ * Viaje real: [estación origen, estación destino, minuto de salida, minuto de llegada,
+ * lat/lon del origen y del destino cuando están fuera de la zona (índice -1)].
+ */
+export type ViajeReal = [number, number, number, number, number?, number?, number?, number?];
+
+export interface SimulacionManana {
+  /** niveles[minuto][estación] */
+  niveles: Int16Array[];
+  /** Fallas acumuladas hasta cada minuto. */
+  sinBici: number[];
+  sinLugar: number[];
+  fallas: { t: number; e: number; tipo: 'sin-bici' | 'sin-lugar' }[];
+  /** perdido[k] = 1 si el viaje k no encontró bici al salir: no se hace (ni llega a destino). */
+  perdido: Uint8Array;
+}
+
+export const INICIO = 6 * 60;
+export const FIN = 12 * 60;
+
+/**
+ * Simula la mañana minuto a minuto con los viajes reales del día y un reparto inicial. Si en la
+ * estación de origen no hay bici, ese viaje no existe: no sale ni suma una bici en el destino.
+ */
+export function simularManana(viajes: ViajeReal[], reparto: number[], C: number): SimulacionManana {
+  const eventos: { t: number; e: number; v: number; delta: 1 | -1 }[] = [];
+  viajes.forEach(([o, d, t0, t1], v) => {
+    if (o >= 0 && t0 >= INICIO && t0 < FIN) eventos.push({ t: t0, e: o, v, delta: -1 });
+    if (d >= 0 && t1 >= INICIO && t1 < FIN) eventos.push({ t: t1, e: d, v, delta: 1 });
+  });
+  // Orden estable: la salida de un viaje queda antes que su llegada aunque sean el mismo minuto.
+  eventos.sort((a, b) => a.t - b.t);
+  const s = Int16Array.from(reparto);
+  const perdido = new Uint8Array(viajes.length);
+  const niveles: Int16Array[] = [];
+  const sinBici: number[] = [];
+  const sinLugar: number[] = [];
+  const fallas: SimulacionManana['fallas'] = [];
+  let k = 0;
+  let nb = 0;
+  let nl = 0;
+  for (let t = INICIO; t <= FIN; t++) {
+    while (k < eventos.length && eventos[k].t <= t) {
+      const ev = eventos[k++];
+      if (ev.delta < 0) {
+        if (s[ev.e] > 0) s[ev.e]--;
+        else nb++, (perdido[ev.v] = 1), fallas.push({ t: ev.t, e: ev.e, tipo: 'sin-bici' });
+      } else if (perdido[ev.v]) continue;
+      else if (s[ev.e] < C) s[ev.e]++;
+      else nl++, fallas.push({ t: ev.t, e: ev.e, tipo: 'sin-lugar' });
+    }
+    niveles.push(Int16Array.from(s));
+    sinBici.push(nb);
+    sinLugar.push(nl);
+  }
+  return { niveles, sinBici, sinLugar, fallas, perdido };
+}

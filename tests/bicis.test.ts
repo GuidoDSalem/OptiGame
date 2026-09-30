@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { decodificar, media, mejorReparto, simularEstacion, type DatosBicisCrudos } from '../src/engine/bicis';
+import { decodificar, media, mejorReparto, simularEstacion, simularManana, type DatosBicisCrudos, type ViajeReal } from '../src/engine/bicis';
 import { rng } from '../src/engine/ambulancias';
 import { analizar } from '../src/casos/bicis/analisis';
 import crudos from '../src/casos/bicis/datos.json';
-import { FLOTA, modeloDe } from '../src/casos/bicis/modelo';
+import { ANCLAJES, FLOTA, modeloDe } from '../src/casos/bicis/modelo';
 
 describe('Caso C2 · bicis (datos reales)', () => {
   const D = decodificar(crudos as unknown as DatosBicisCrudos);
@@ -79,5 +79,29 @@ describe('Caso C2 · bicis (datos reales)', () => {
     expect(media(chico.real)).toBeGreaterThan(media(chico.prometido) + 2);
     const grande = a.tamanos[a.tamanos.length - 1];
     expect(Math.abs(media(grande.real) - media(grande.prometido))).toBeLessThan(2);
+  });
+
+  it('la reproducción no saca bicis de estaciones vacías ni las hace aparecer en el destino', () => {
+    // Un viaje sale de una estación vacía: no se hace y tampoco llega.
+    const r = simularManana([[0, 1, 400, 410]], [0, 5], ANCLAJES);
+    expect(r.perdido[0]).toBe(1);
+    expect(r.sinBici.at(-1)).toBe(1);
+    expect(r.niveles.at(-1)).toEqual(Int16Array.from([0, 5]));
+
+    const animados = (crudos as unknown as DatosBicisCrudos).animados!;
+    const medio = D.estaciones.map(() => FLOTA / D.estaciones.length);
+    for (const viajes of Object.values(animados) as ViajeReal[][]) {
+      const sim = simularManana(viajes, medio, ANCLAJES);
+      expect(sim.sinBici.at(-1)).toBeGreaterThan(0);
+      // Conservación por estación: sólo mueven bicis los viajes que se hicieron.
+      const final = [...medio];
+      viajes.forEach(([o, d, t0, t1], k) => {
+        if (sim.perdido[k]) return;
+        if (o >= 0 && t0 < 12 * 60) final[o]--;
+        if (d >= 0 && t1 < 12 * 60) final[d]++;
+      });
+      for (const f of sim.fallas) if (f.tipo === 'sin-lugar') final[f.e]--;
+      expect(Array.from(sim.niveles.at(-1)!)).toEqual(final);
+    }
   });
 });
