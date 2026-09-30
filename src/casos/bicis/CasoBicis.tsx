@@ -111,7 +111,10 @@ function Portada({ c }: { c: Ctx }) {
         arranque el día?
       </p>
       <Reproduccion estaciones={c.D.estaciones} viajes={viajesDe(c, f)} repartos={[{ reparto: medioLleno(c) }]} capacidad={ANCLAJES} auto duracion={30} controles={false} etiquetas="algunas" />
-      <p className="caption">Scrolleá: la historia se arma de a poco. Todos los datos son reales.</p>
+      <p className="caption">
+        Scrolleá: la historia se arma de a poco. Los viajes son reales; cuántas bicis había en cada estación no se
+        publica, así que eso lo suponemos (todos los supuestos, en la sección 11).
+      </p>
     </header>
   );
 }
@@ -147,6 +150,12 @@ function Situacion({ c }: { c: Ctx }) {
       </p>
       <MapaCentro estaciones={c.D.estaciones} capacidad={ANCLAJES} niveles={medioLleno(c)} etiquetas="todas" />
       <p className="caption">Cada tubo es una estación; el relleno, las bicis que tiene (acá, todas a medio llenar).</p>
+      <p className="note">
+        Qué es dato y qué es supuesto: los viajes, las estaciones y sus ubicaciones son reales. Los {ANCLAJES} anclajes
+        por estación, la flota de {FLOTA} bicis (la mitad de los anclajes) y la ventana de las {HORA_INICIO} a las{' '}
+        {HORA_FIN} sin reposición en el medio son supuestos nuestros: el dataset no publica la capacidad de las
+        estaciones ni cuántas bicis había en cada una.
+      </p>
     </Seccion>
   );
 }
@@ -179,6 +188,13 @@ function UnaManana({ c }: { c: Ctx }) {
         bicis: en promedio salen {fmt(-c.netos[peor])} bicis más de las que entran en la mañana. Mientras tanto, las
         estaciones de oficinas como <strong>{nombreCorto(c.D.estaciones[mejor].nombre)}</strong> se llenan (+
         {fmt(c.netos[mejor])}). Medio llenar todo es justo lo contrario de lo que hace falta.
+      </p>
+      <p className="note">
+        Cómo leer la animación: todos esos viajes se hicieron, así que en la realidad había una bici en cada salida.
+        Lo que muestra es qué <strong>habría pasado</strong> si la mañana arrancaba con este reparto. Si una estación
+        está vacía, ese viaje se pierde: no sale ni llega a destino (nadie camina hasta otra estación). Si está llena,
+        la bici no se puede dejar ahí. No hay camiones durante la mañana, y cada punto va en línea recta y a velocidad
+        pareja, no por las calles.
       </p>
     </Seccion>
   );
@@ -356,6 +372,12 @@ function Saa({ c, a }: { c: Ctx; a: AnalisisBicis }) {
         de todas las mañanas (en negro) tiene forma de U, y SAA elige en cada estación un punto de esa U,
         repartiendo las {FLOTA} bicis donde más rinden.
       </p>
+      <p className="note">
+        Qué cuenta como falla: cada salida sin bici y cada llegada sin anclaje libre valen lo mismo, 1. Para el
+        cálculo, cada estación se simula por separado: un viaje que falla en su origen igual cuenta como llegada en su
+        destino, y como los datos del análisis vienen agrupados por hora, dentro de cada hora las salidas y llegadas se
+        intercalan de forma pareja. Es lo que permite resolverlo exacto con programación dinámica.
+      </p>
       <TablaRepartos
         estaciones={c.D.estaciones}
         orden={c.orden}
@@ -395,7 +417,8 @@ function Validacion({ a }: { c?: Ctx; a: AnalisisBicis }) {
     <Seccion n={7} titulo={`La prueba de fuego: las ${a.n2024} mañanas de 2024`}>
       <p>
         Congelamos los repartos elegidos con 2023 y los probamos en <strong>todas las mañanas hábiles de 2024</strong>,
-        que ningún plan vio. Nada de simulación: son los viajes que la gente hizo.
+        que ningún plan vio. Los viajes no los inventa ningún simulador: son los que la gente hizo. Lo que sí se
+        simula es qué le habría pasado a cada reparto con esos viajes (con los mismos supuestos de anclajes y flota).
       </p>
       <HistogramasCosto
         series={ids.map((id) => ({
@@ -582,6 +605,11 @@ function Decision({ c, a }: { c: Ctx; a: AnalisisBicis }) {
         {' '}
         {ANCLAJES} anclajes no alcanzan para la ola de las 7.
       </p>
+      <p className="note">
+        Los números de esta sección dependen de los supuestos: con la capacidad real de cada estación el reparto y
+        las fallas cambian (la estructura, qué estaciones cargar y cuáles dejar casi vacías, no debería cambiar
+        mucho). Antes de usarlo en la calle habría que recalcularlo con los anclajes reales.
+      </p>
       <div className="memo">
         <span className="eyebrow">Recomendación a la operación de Ecobici (zona Centro)</span>
         <p>
@@ -605,30 +633,86 @@ function Decision({ c, a }: { c: Ctx; a: AnalisisBicis }) {
 function Datos({ c, onExit }: { c: Ctx; onExit(): void }) {
   return (
     <Seccion n={11} titulo="Datos y supuestos">
+      <p>
+        Un resumen de qué sale de los datos, qué supusimos y qué dejamos afuera. Ninguno de estos puntos cambia la
+        conclusión de fondo (repartir según las mañanas reales, no a medio llenar), pero sí los números exactos.
+      </p>
+      <h3>Los datos</h3>
       <ul>
         <li>
-          <strong>Viajes:</strong> {c.crudos.fuente?.recorridos}. Se usaron los días hábiles y las {c.D.estaciones.length}{' '}
-          estaciones más usadas del Centro; cuentan todos los viajes que salen o llegan a ellas.
+          <strong>Viajes:</strong> {c.crudos.fuente?.recorridos}. Cada viaje trae estación y hora de salida y de llegada,
+          al minuto.
         </li>
         <li>
-          <strong>Lluvia:</strong> {c.crudos.fuente?.clima}.
+          <strong>Zona:</strong> las {c.D.estaciones.length} estaciones más usadas dentro de un recuadro del Centro, entre las que
+          tuvieron uso en los dos años. Cuentan todos los viajes que salen de ellas o llegan a ellas, vengan de donde
+          vengan.
         </li>
+        <li>
+          <strong>Días:</strong> sólo de lunes a viernes; los feriados que caen en día de semana quedan incluidos (son
+          las mañanas flojas de la sección 3). Una llegada cuenta sólo si es el mismo día de la salida.
+        </li>
+        <li>
+          <strong>Lluvia:</strong> {c.crudos.fuente?.clima}. Es un valor por día para toda la ciudad, no por hora.
+        </li>
+      </ul>
+      <h3>Los supuestos</h3>
+      <ul>
         <li>
           <strong>Anclajes:</strong> el dataset no publica cuántos tiene cada estación; supusimos {ANCLAJES} en todas. La API
           de Ecobici (GBFS, con registro) sí los informa: sería la primera mejora.
         </li>
         <li>
+          <strong>Flota:</strong> {FLOTA} bicis para la zona, la mitad de los anclajes. Tampoco es un dato publicado.
+        </li>
+        <li>
+          <strong>Bicis al empezar:</strong> no sabemos cuántas había en cada estación cada mañana. Suponemos que el
+          camión deja exactamente el reparto elegido, y que todas las bicis andan (ninguna rota o fuera de servicio).
+        </li>
+        <li>
+          <strong>Ventana:</strong> el reparto tiene que aguantar de las {HORA_INICIO} a las {HORA_FIN}, sin reposición
+          en el medio. En la realidad los camiones también trabajan de día; por eso los datos muestran viajes que en
+          nuestro modelo fallarían.
+        </li>
+        <li>
+          <strong>Todas las fallas pesan igual:</strong> quedarse sin bici y no encontrar anclaje cuentan 1 cada una,
+          aunque para el usuario no son lo mismo.
+        </li>
+      </ul>
+      <h3>Las simplificaciones</h3>
+      <ul>
+        <li>
           <strong>Demanda censurada:</strong> sólo vemos los viajes que se pudieron hacer. Si una estación estaba vacía y
-          alguien se fue caminando, ese viaje no está en los datos: la demanda real es algo mayor.
+          alguien se fue caminando, ese viaje no está en los datos: la demanda real es algo mayor, justo en las
+          estaciones que más se vacían.
         </li>
         <li>
-          <strong>Estaciones independientes:</strong> un viaje que falla en su origen igual cuenta como llegada en su
-          destino, y dentro de cada hora las salidas y llegadas se intercalan parejo (los datos del análisis van por hora;
-          la animación usa los minutos reales).
+          <strong>Nadie cambia de planes:</strong> quien no encuentra bici no va a otra estación ni espera a que llegue
+          una; quien no encuentra lugar no aparece en la estación de al lado.
         </li>
         <li>
-          <strong>Sin reposición a la mañana:</strong> en la realidad los camiones también trabajan de día; por eso los
-          datos muestran viajes que en nuestro modelo fallarían.
+          <strong>Estaciones independientes (en el análisis):</strong> un viaje que falla en su origen igual cuenta como
+          llegada en su destino, y dentro de cada hora las salidas y llegadas se intercalan parejo (los datos del
+          análisis van por hora). Así cada estación se simula sola y el reparto óptimo sale exacto.
+        </li>
+        <li>
+          <strong>Estaciones de afuera:</strong> los viajes desde o hacia estaciones que no están entre las{' '}
+          {c.D.estaciones.length} cuentan como salidas o llegadas de la zona, pero esas otras estaciones no se simulan:
+          se supone que siempre tienen bici y lugar.
+        </li>
+      </ul>
+      <h3>La animación</h3>
+      <ul>
+        <li>
+          Muestra una mañana real de 2023, un día hábil típico y sin lluvia, con los minutos reales de cada viaje.
+        </li>
+        <li>
+          A diferencia del análisis, ahí un viaje que no encuentra bici no sale ni llega a destino. Por eso sus
+          contadores no coinciden exactamente con las tablas.
+        </li>
+        <li>
+          Los puntos van en línea recta y a velocidad pareja; los huecos son viajes desde o hacia estaciones que no
+          están en el mapa.
         </li>
       </ul>
       <p className="caption">
