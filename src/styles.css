@@ -546,3 +546,61 @@ table.repartos .mini-barra i { display: block; height: 100%; background: var(--i
 table.repartos td.destacada .mini-barra i { background: var(--accent); }
 table.repartos .num { font-variant-numeric: tabular-nums; }
 .caso code { font-size: 0.85em; background: var(--surface); padding: 1px 4px; border-radius: 4px; border: 1px solid var(--line); }
+
+/* Caso C3: red de suministro y relojes */
+.caso .ficha { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 16px; margin: 12px 0; }
+.caso .ficha p, .caso .ficha li { font-size: 0.95rem; }
+.caso .ficha ul { padding-left: 1.2em; margin: 0.4em 0; }
+.caso .big-num { font-size: 2rem; font-weight: 700; margin: 0.2em 0; line-height: 1.1; }
+.caso .botones-nodo { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.caso .botones-nodo button { border-radius: 999px; font-size: 0.85rem; padding: 0.3em 0.8em; color: var(--muted); }
+.caso .botones-nodo button.on { color: var(--ink); border-color: var(--ink); }
+.red-cadena .flujo { fill: none; stroke: var(--muted); stroke-opacity: 0.35; stroke-width: 1.2; }
+.red-cadena.animada .flujo { stroke: var(--accent); stroke-opacity: 0.45; stroke-dasharray: 3 7; animation: flujo-red 1.6s linear infinite; }
+.red-cadena .flujo.cortado { stroke: var(--bad); stroke-opacity: 0.8; stroke-dasharray: 2 4; animation: none; }
+@keyframes flujo-red { to { stroke-dashoffset: -20; } }
+@media (prefers-reduced-motion: reduce) { .red-cadena.animada .flujo { animation: none; } }
+.red-cadena .nodo circle, .red-cadena .nodo rect { fill: var(--ink); stroke: var(--surface); stroke-width: 2; }
+.red-cadena .nodo.nivel2 circle { fill: var(--surface); stroke: var(--ink); stroke-width: 1.5; }
+.red-cadena .nodo circle.hit { fill: transparent; stroke: none; }
+.red-cadena .nodo.expuesto circle:not(.hit) { fill: var(--bad); stroke: var(--surface); }
+.red-cadena .nodo.caido circle:not(.hit) { fill: var(--surface); stroke: var(--bad); stroke-width: 2.5; }
+.red-cadena .nodo.sel circle:not(.hit) { stroke: var(--accent); stroke-width: 3; }
+.red-cadena .nombre { font-size: 11px; fill: var(--ink); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; }
+.red-cadena .nodo.caido .nombre { fill: var(--bad); font-weight: 600; }
+.red-cadena .producto rect { fill: var(--accent); }
+.red-cadena .producto.sin-venta rect { fill: var(--surface); stroke: var(--bad); stroke-width: 2; }
+.red-cadena .producto.sin-venta .nombre { fill: var(--bad); }
+.red-cadena.compacto .nodo circle, .red-cadena.compacto .nodo rect { stroke-width: 1; }
+.red-cadena.compacto .flujo { stroke-width: 0.8; }
+.grafico .barra { fill: var(--accent); }
+.grafico .hit { fill: transparent; stroke: transparent; }
+.grafico.relojes .aguanta { fill: var(--accent); fill-opacity: 0.35; }
+.grafico.relojes .parado { fill: var(--bad); }
+.grafico.relojes .ttr { stroke: var(--ink); stroke-width: 2.5; }
+.grafico.relojes .reloj.sel .etiqueta { font-weight: 700; }
+.grafico.relojes .reloj:hover .aguanta { fill-opacity: 0.55; }
+.grafico.pendiente line { stroke: var(--muted); stroke-opacity: 0.35; stroke-width: 1.2; }
+.grafico.pendiente circle { fill: var(--muted); }
+.grafico.pendiente .etiqueta { font-size: 11px; fill: var(--muted); }
+.grafico.pendiente .con-perdida line { stroke: var(--ink); stroke-opacity: 0.6; }
+.grafico.pendiente .con-perdida circle { fill: var(--ink); }
+.grafico.pendiente .con-perdida .etiqueta { fill: var(--ink); }
+.grafico.pendiente .resaltado line { stroke: var(--bad); stroke-opacity: 1; stroke-width: 2.2; }
+.grafico.pendiente .resaltado circle { fill: var(--bad); }
+.grafico.pendiente .resaltado .etiqueta { fill: var(--ink); font-weight: 700; }
+.grafico .curva .linea { fill: none; stroke: var(--muted); stroke-opacity: 0.45; stroke-width: 1.6; }
+.grafico .curva .hit { fill: none; stroke: transparent; stroke-width: 12; }
+.grafico .curva .etiqueta { fill: var(--muted); font-size: 11px; }
+.grafico .curva.sel .linea { stroke: var(--accent); stroke-opacity: 1; stroke-width: 2.4; }
+.grafico .curva.sel .etiqueta { fill: var(--ink); font-weight: 700; }
+.grafico .curva:hover .linea { stroke-opacity: 0.9; }
+.grafico .marca-tts { stroke: var(--accent); stroke-dasharray: 3 3; }
+.grafico .marca-ttr { stroke: var(--ink); stroke-dasharray: 3 3; }
+.grafico .linea-plan { fill: none; stroke: var(--accent); stroke-width: 2; }
+.grafico .punto-plan circle:not(.hit) { fill: var(--accent); stroke: var(--surface); stroke-width: 2; }
+.grafico .punto-plan.sel circle:not(.hit) { fill: var(--ink); }
+.grafico .punto-intuitivo circle { fill: var(--surface); stroke: var(--bad); stroke-width: 2.5; }
+.leyenda-caso i.aguanta { background: var(--accent); opacity: 0.45; border-radius: 2px; }
+.leyenda-caso i.ttr { background: var(--ink); width: 3px; border-radius: 0; }
+.leyenda-caso i.parado { background: var(--bad); border-radius: 2px; }
