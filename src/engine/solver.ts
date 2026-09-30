@@ -28,13 +28,15 @@ type Highs = Awaited<ReturnType<typeof loadHighs>>;
 let highsPromise: Promise<Highs> | null = null;
 
 /**
- * Carga HiGHS (WebAssembly) una sola vez. En el navegador hay que decirle dónde está el .wasm;
- * en Node (tests) lo encuentra solo.
+ * Carga HiGHS (WebAssembly) una sola vez. En el navegador (también dentro de un Web Worker) hay
+ * que decirle dónde está el .wasm; en Node (tests) lo encuentra solo.
  */
 function getHighs(): Promise<Highs> {
   if (!highsPromise) {
     highsPromise = (async () => {
-      if (typeof window === 'undefined') return loadHighs();
+      // En Node (tests) se encuentra solo; en el navegador (página o Web Worker) hay que darle la URL.
+      const enNode = typeof (globalThis as { process?: { versions?: { node?: string } } }).process?.versions?.node === 'string';
+      if (enNode) return loadHighs();
       const { default: wasmUrl } = await import('highs/runtime?url');
       return loadHighs({ locateFile: () => wasmUrl });
     })();

@@ -43,6 +43,7 @@ src/
     ramificacion.ts       Branch and bound y cortes de Gomory en 2 variables (LP exacto por vértices, tableau)
     bicis.ts              Caso C2: simulación de estaciones con viajes reales y reparto óptimo por programación dinámica
     ambulancias.ts        Caso C1: simulación con semilla, flujo de costo mínimo por día, SAA y validación
+    resiliencia.ts        Caso C3: riesgo de suministro (TTS/TTR): un PL por proveedor caído, pérdida y blindaje min-max
     estocastico.ts        Benders estocástico (L-shaped): escenarios, multi-corte vs. corte único, VSS y EVPI
     columnas.ts           Generación de columnas (corte de bobinas): maestro, pricing-mochila, cota de Farley
     pareto.ts             Dos objetivos: frontera exacta por ε-restricción y puntos soportados
@@ -117,6 +118,10 @@ src/
       datos.json          Resumen de los datos reales (<1 MB), generado por scripts/ecobici/preprocesar.py
       analisis.ts         Análisis completo (puro); worker.ts lo corre fuera de la página
       CasoBicis.tsx       La página; Reproduccion.tsx anima una mañana real minuto a minuto
+    resiliencia/          C3: qué proveedor te para la fábrica (Simchi-Levi / Ford), red ficticia de maquinaria agrícola
+      planta.ts           Productos, piezas, proveedores (dos niveles), TTR y opciones de blindaje
+      analisis.ts         Análisis completo (puro, usa HiGHS); worker.ts lo corre fuera de la página
+      CasoResiliencia.tsx La página; graficos.tsx tiene la red, los relojes TTS/TTR y las curvas
   config.ts               Funcionalidades en prueba (p. ej. botón "Ver modelo correcto")
   scene/IsoCanvas.tsx     Lienzo Three.js isométrico reutilizable + primitivas (box, cylinder, pipe)
   scene/thumbnail.ts      Render único de una escena a imagen (miniaturas del menú)
