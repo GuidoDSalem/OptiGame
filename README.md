@@ -46,6 +46,7 @@ src/
     resiliencia.ts        Caso C3: riesgo de suministro (TTS/TTR): un PL por proveedor caído, pérdida y blindaje min-max
     estocastico.ts        Benders estocástico (L-shaped): escenarios, multi-corte vs. corte único, VSS y EVPI
     columnas.ts           Generación de columnas (corte de bobinas): maestro, pricing-mochila, cota de Farley
+    stockSeguridad.ts     Stock de seguridad multi-etapa (servicio garantizado en serie): costo por tramo, programación dinámica
     pareto.ts             Dos objetivos: frontera exacta por ε-restricción y puntos soportados
     routing.ts            Ruteo: circuitos, heurísticas, cortes de subtour, formulación MTZ
     indexed.ts            Modelos con índices: conjuntos (ordenados o no), parámetros, familias de
@@ -106,6 +107,11 @@ src/
       EstocasticoAuto.tsx Resultado: plan estocástico vs. promedio vs. peor año, VSS, EVPI, multi vs. único
       Scene.ts            Mapa con plantas, campos, silos bolsa y el reparto esperado
       acopio.ts           Variante: cooperativa agrícola con año lluvioso, normal y sequía
+    stock/                Avanzado A6 como PLANTILLA: dónde guardar stock de seguridad en una cadena (servicio garantizado)
+      template.ts         crearNivelStock(variante): tramos de etapas, teoría (todo o nada), mundo
+      StockPanel.tsx      Intento manual: el jugador elige cuántos días promete cada etapa y ve la curva de costo
+      StockAuto.tsx       Resultado: dónde quedó el stock, las 2^(N−1) particiones, programación dinámica y promesa al cliente
+      yerba.ts            Variante: yerbatera misionera (secado, estacionamiento, molino, envasado, CD en Buenos Aires)
   casos/                  Casos de estudio: páginas que se leen scrolleando (no son niveles)
     index.ts              Registro de casos (título, página, miniatura)
     ambulancias/          C1: bases de ambulancias con Montecarlo + SAA

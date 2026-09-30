@@ -604,3 +604,25 @@ table.repartos .num { font-variant-numeric: tabular-nums; }
 .leyenda-caso i.aguanta { background: var(--accent); opacity: 0.45; border-radius: 2px; }
 .leyenda-caso i.ttr { background: var(--ink); width: 3px; border-radius: 0; }
 .leyenda-caso i.parado { background: var(--bad); border-radius: 2px; }
+
+/* Nivel A6: stock de seguridad en varias etapas */
+.panel-stock .presets { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.panel-stock .presets button { font-size: 0.85rem; padding: 0.3em 0.8em; }
+.panel-stock table.etapas td, .panel-stock table.etapas th { padding: 0.35em 0.5em; white-space: nowrap; }
+.panel-stock table.etapas tbody tr { cursor: pointer; }
+.panel-stock table.etapas tr.mal td { color: var(--bad); }
+.panel-stock table.etapas tfoot th { color: var(--ink); font-size: 0.9rem; }
+.panel-stock .slider-dias { display: inline-flex; align-items: center; gap: 6px; }
+.panel-stock .slider-dias input { width: 72px; accent-color: var(--ink); padding: 0; border: none; }
+.panel-stock .slider-dias b { font-variant-numeric: tabular-nums; min-width: 1.4em; }
+.grafico.curva-etapa .punto-curva { fill: var(--accent); }
+.grafico.curva-etapa .punto-actual { fill: var(--ink); stroke: var(--surface); stroke-width: 2; }
+.grafico.cadena-tramos .etapa rect { fill: var(--surface); stroke: var(--line); stroke-width: 1.5; }
+.grafico.cadena-tramos .etapa.con-stock rect { stroke: var(--accent); stroke-width: 2; }
+.grafico.cadena-tramos .etapa circle { fill: #c9a86a; stroke: var(--surface); stroke-width: 2; }
+.grafico.cadena-tramos .llave path { fill: none; stroke: var(--muted); stroke-width: 1.5; }
+.grafico.colocaciones .barra { fill: var(--muted); fill-opacity: 0.5; }
+.grafico.colocaciones .optima .barra { fill: var(--accent); fill-opacity: 1; }
+.grafico.colocaciones .casilla { fill: var(--surface); stroke: var(--line); }
+.grafico.colocaciones .casilla.con-stock { fill: #c9a86a; stroke: #c9a86a; }
+.grafico.colocaciones .optima .valor { fill: var(--ink); font-weight: 700; }
